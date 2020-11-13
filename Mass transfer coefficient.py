@@ -12,8 +12,8 @@ gas_viscosity=10 ** -5 #mu_G in kg/m*s
 moisture_diffusivity=10 ** -5 #D_G
 
 # Unknowns (just set to some values)
-superficial_surface_area=0.01 #S_P in m^2/kg
-cU=0.5 #Unknown
+superficial_surface_area=400 #S_P in m^2/kg - assuming spherical particles S_P=surface_area/volume*density
+cUMw=0.5 #Unknown
 
 
 def mass_transfer_coefficient():
@@ -22,7 +22,7 @@ def mass_transfer_coefficient():
     reynolds_number=superficial_mass_velocity/particle_surface_area*gas_viscosity #Re
     denominator=gas_viscosity/(gas_density*moisture_diffusivity)
     j_m=0.61* reynolds_number ** -0.41
-    k_gp=j_m*cU//denominator ** (2/3)
+    k_gp=j_m*cUMw/denominator ** (2/3)
     return superficial_mass_velocity, particle_surface_area, reynolds_number, k_gp
 
 # Variables computed in the program
