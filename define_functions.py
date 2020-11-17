@@ -32,3 +32,11 @@ def compute_temperature_particle(temperature, constant, dt, conductivity, laplac
     change_temperature = (heat_of_sorption + heat_transfer) / heat_capacity
     temperature += change_temperature * dt
     return temperature
+
+
+def compute_p_saturated(A, B, temp_kelvin, C):
+    temp_celsius = temp_kelvin + 273.15
+    p_saturated = np.exp(A-B/(temp_celsius+C))
+    p_saturated_pascal = p_saturated * 133.322
+    return p_saturated_pascal
+
