@@ -8,7 +8,7 @@ d_length = bed_length/number_of_divisions
 dt = d_length/velocity
 # print(d_length, dt)
 # print(velocity)
-
+print(k_GP)
 moisture_particle = np.zeros((1, number_of_divisions))
 temp_particle = np.zeros((1, number_of_divisions)) + initial_temp
 
@@ -28,7 +28,12 @@ for t in range(100):
                                                                laplacian, particle_density, alpha_parameter, moisture_particle[y, x],
                                                                relative_humidity, N, heat_of_vaporization, heat_transfer_coefficient,
                                                                specific_surface_area, temp_gas[y, x], particle_heat_capacity)
+            temp_gas[y, x] = compute_temperature_gas(temp_gas[y, x], constant, dt, conductivity_gas, laplacian, gas_density,
+                                                     alpha_parameter, moisture_particle[y, x], moisture_vapor_heat_capacity,
+                                                     relative_humidity, N, heat_transfer_coefficient, specific_surface_area,
+                                                     temp_gas[y, x], gas_heat_capacity, velocity, temp_gradient)
+            # moisture_gas[y, x] = compute_moisture_gas()
 # print(moisture_particle)
-print(temp_particle)
+print(temp_gas)
 
 
