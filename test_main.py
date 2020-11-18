@@ -38,7 +38,7 @@ A = 8.07131
 B = 1730.630
 C = 233.426
 
-R = 8.314 # J/K*mol fixed parameter for ideal gases 
+R = 8.314 # J/K*mol ideal gas constant (fixed) 
 
 # Computed values
 specific_surface_area = spec_surface_area(particle_diameter, particle_density) #SSA
