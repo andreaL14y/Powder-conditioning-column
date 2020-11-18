@@ -40,7 +40,7 @@ def compute_temperature_particle(temperature, constant, dt, conductivity, laplac
 
 
 def compute_p_saturated(A, B, temp_kelvin, C):
-    temp_celsius = temp_kelvin + 273.15
+    temp_celsius = temp_kelvin - 273.15
     p_saturated = np.exp(A-B/(temp_celsius+C))
     p_saturated_pascal = p_saturated * 133.322
     return p_saturated_pascal
