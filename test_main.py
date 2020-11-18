@@ -83,9 +83,9 @@ while moisture_particle_next != moisture_particle_old:
 print(i)
 print(i*dt)
 
-print(compute_p_saturated(A, B, initial_temp, C)) # pressure in Pascal
+print('P_sat: ', compute_p_saturated(A, B, initial_temp, C)) # pressure in Pascal
 
-print(specific_surface_area)
+print('SSA: ', specific_surface_area)
 
 G_0, a, Re, k_gp=mass_transfer_coefficient(moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, 
                               particle_density, flow_rate, particle_diameter, Mw, relative_velocity_gp, molar_concentration)
