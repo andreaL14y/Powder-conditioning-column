@@ -65,5 +65,5 @@ def mass_transfer_coefficient(moisture_diffusivity, gas_viscosity, column_diamet
     reynolds_number=superficial_mass_velocity/particle_surface_area*gas_viscosity #Re
     denominator=gas_viscosity/(gas_density*moisture_diffusivity)
     j_m=0.61* reynolds_number ** -0.41
-    k_gp=j_m*molar_concentration*relative_velocity_gp*Mw//denominator ** (2/3)
+    k_gp=j_m*molar_concentration*relative_velocity_gp*Mw/denominator ** (2/3)
     return superficial_mass_velocity, particle_surface_area, reynolds_number, k_gp
