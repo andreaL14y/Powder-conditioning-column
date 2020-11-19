@@ -5,7 +5,7 @@ number_of_time_steps = 1000
 
 number_of_divisions = 100
 d_length = bed_length/number_of_divisions
-dt = d_length/velocity
+dt = d_length / gas_velocity
 # print(d_length, dt)
 # print(velocity)
 print(k_GP)
@@ -28,12 +28,13 @@ for t in range(100):
                                                                laplacian, particle_density, alpha_parameter, moisture_particle[y, x],
                                                                relative_humidity, N, heat_of_vaporization, heat_transfer_coefficient,
                                                                specific_surface_area, temp_gas[y, x], particle_heat_capacity)
-            temp_gas[y, x] = compute_temperature_gas(temp_gas[y, x], constant, dt, conductivity_gas, laplacian, gas_density,
+            temp_gas[y, x] = compute_temperature_gas(temp_particle[y, x], constant, dt, conductivity_gas, laplacian, gas_density,
                                                      alpha_parameter, moisture_particle[y, x], moisture_vapor_heat_capacity,
                                                      relative_humidity, N, heat_transfer_coefficient, specific_surface_area,
-                                                     temp_gas[y, x], gas_heat_capacity, velocity, temp_gradient)
+                                                     temp_gas[y, x], gas_heat_capacity, gas_velocity, temp_gradient, porosity_powder, particle_density)
             # moisture_gas[y, x] = compute_moisture_gas()
 # print(moisture_particle)
+print(temp_particle)
 print(temp_gas)
 
 
