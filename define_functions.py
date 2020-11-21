@@ -145,7 +145,7 @@ def compute_relative_humidity():
         print('Relative humidity larger than 1, error!')
     return relative_humidity
 
-def compute_relative_humidity_2(partial_pressure_moisture, pressure_saturated):
+def compute_relative_humidity_2(partial_pressure_moisture, pressure_saturated): #Formula according to his mail
     RH_2=partial_pressure_moisture/(0.01*pressure_saturated)
     return RH_2
 

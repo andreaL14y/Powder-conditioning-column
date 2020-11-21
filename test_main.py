@@ -71,7 +71,7 @@ print('Saturated pressure: ', pressure_saturated)
 print('Partial pressure: ', partial_pressure)
 
 relative_humidity_2 = compute_relative_humidity_2(partial_pressure, pressure_saturated)
-print('Rel humidity 2 is: ', relative_humidity_2)
+print('Rel humidity 2 is: ', relative_humidity_2) #added formula according to his formula
 
 molar_concentration = molar_concentration_dry_air
 #molar_concentration1 = compute_molar_concentration(
