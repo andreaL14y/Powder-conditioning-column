@@ -127,6 +127,9 @@ def compute_partial_pressure_moisture(relative_humidity, pressure_saturated): # 
     partial_pressure_moisture = 0.01 * relative_humidity * pressure_saturated
     return partial_pressure_moisture
 
+def compute_partial_pressure_moisture_2(molar_volume, temperature, R_gas_constant):
+        partial_pressure_moisture = (R_gas_constant * temperature)/molar_concentration
+        return partial_pressure_moisture
 
 # def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temp): # c = molar_concentration
 #     partial_pressure_moisture = R_gas_constant * temp * molar_concentration

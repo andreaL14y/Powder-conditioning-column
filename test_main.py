@@ -26,6 +26,7 @@ mass_gas = gas_density * volume_gas
 moles_gas = mass_gas/molar_mass_dry_air                                        # n in ideal gas law
 molar_concentration_dry_air = moles_gas/volume_gas
 print(molar_concentration_dry_air, 'molar concentration')
+molar_volume_gas = volume_gas/moles_gas
 
 specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # 1/m, SSA
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
@@ -70,13 +71,16 @@ partial_pressure = compute_partial_pressure_moisture(relative_humidity, pressure
 print('Saturated pressure: ', pressure_saturated)
 print('Partial pressure: ', partial_pressure)
 
-relative_humidity_2 = compute_relative_humidity_2(partial_pressure, pressure_saturated)
-print('Rel humidity 2 is: ', relative_humidity_2) #added formula according to his formula
-
 molar_concentration = molar_concentration_dry_air
 #molar_concentration1 = compute_molar_concentration(
 #    initial_relative_humidity, pressure_ambient, R_gas_constant, initial_temp) # mol/m^3 corresp. to c in our equation
 print('Molar concentration 2: ', molar_concentration)
+
+partial_pressure_2 = compute_partial_pressure_moisture_2(molar_volume_gas, initial_temp, R_gas_constant) #molar volume instead c (Unit analysis), doesn't really make sense
+print('Partial pressure 2 is: ', partial_pressure_2)  #added formula according to Johan's formula in email
+
+relative_humidity_2 = compute_relative_humidity_2(partial_pressure_2, pressure_saturated)
+print('Rel humidity 2 is: ', relative_humidity_2) #added formula according to Johan's formula in email --> magnitude doesn't make sense at all :-(
 
 k_GP = compute_mass_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
