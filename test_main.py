@@ -70,9 +70,12 @@ partial_pressure = compute_partial_pressure_moisture(relative_humidity, pressure
 print('Saturated pressure: ', pressure_saturated)
 print('Partial pressure: ', partial_pressure)
 
+relative_humidity_2 = compute_relative_humidity_2(partial_pressure, pressure_saturated)
+print('Rel humidity 2 is: ', relative_humidity_2)
+
 molar_concentration = molar_concentration_dry_air
-# molar_concentration = compute_molar_concentration(
-#     initial_relative_humidity, pressure_ambient, R_gas_constant, initial_temp) # mol/m^3 corresp. to c in our equation
+#molar_concentration1 = compute_molar_concentration(
+#    initial_relative_humidity, pressure_ambient, R_gas_constant, initial_temp) # mol/m^3 corresp. to c in our equation
 print('Molar concentration 2: ', molar_concentration)
 
 k_GP = compute_mass_transfer_coefficient(

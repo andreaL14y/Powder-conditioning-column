@@ -145,6 +145,9 @@ def compute_relative_humidity():
         print('Relative humidity larger than 1, error!')
     return relative_humidity
 
+def compute_relative_humidity_2(partial_pressure_moisture, pressure_saturated):
+    RH_2=partial_pressure_moisture/(0.01*pressure_saturated)
+    return RH_2
 
 def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
     print(relative_humidity)

@@ -45,5 +45,3 @@ for t in range(100):
 # print(moisture_particle)
 print(temp_particle)
 print(temp_gas)
-
-
