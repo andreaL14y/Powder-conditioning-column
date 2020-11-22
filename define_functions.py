@@ -2,6 +2,7 @@
 import numpy as np
 import math
 
+
 # constant = k_GP * surface_area * pressure/pressure
 ###################################### MAIN EQUATIONS (1-4) ############################################################
 def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt, constant):
@@ -28,8 +29,8 @@ def compute_moisture_gas(moisture_particle, alpha, N, relative_humidity, dt, con
                          gradient_moisture, laplacian, density_gas, density_particle, porosity):
     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
     change_moisture_absorption = - constant * density_particle * porosity * \
-                      (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
-    change_moisture = (change_moisture_diffusion + change_moisture_absorption)/(density_gas * (1-porosity)) - \
+                                 (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
+    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
                       velocity * gradient_moisture
 
     moisture_particle_current = moisture_particle + change_moisture * dt
@@ -44,14 +45,15 @@ def compute_temperature_gas(
     heat_of_sorption = density_particle * porosity * constant * \
                        (relative_humidity - compute_equilibrium_moisture(alpha, moisture, N)) * heat_capacity_vapor * \
                        (temp_gas - temp_particle)
-
+    print('Heat of sorption: ', heat_of_sorption)
     heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
                     (temp_gas - temp_particle)
-
+    print('Heat transfer: ', heat_transfer)
     change_temperature = (heat_of_sorption + heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas) - \
                          velocity * temp_gradient
     temp_gas += change_temperature * dt
     return temp_gas
+
 
 ######################################### ONE-TIME USE #################################################################
 def volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute):
@@ -76,13 +78,8 @@ def spec_surface_area(particle_diameter, particle_density):
 
 
 def compute_initial_moisture_particle(alpha, N, relative_humidity):
-    moisture_particle = (-np.log(-(relative_humidity - 1))/alpha)**(1/N)
+    moisture_particle = (-np.log(-(relative_humidity - 1)) / alpha) ** (1 / N)
     return moisture_particle
-
-# Unused
-def molar_mass_moisture_kg(molar_mass_moisture):
-    Mw = molar_mass_moisture / 1000
-    return Mw
 
 
 ######################################### RECURRENT ####################################################################
@@ -108,11 +105,13 @@ def compute_mass_transfer_coefficient(
 def compute_heat_transfer_coefficient(
         moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
         particle_diameter, Mw, superficial_velocity, molar_concentration, gas_heat_capacity):
-    superficial_mass_velocity, particle_surface_area, reynolds_number, k_gp = \
-        compute_mass_transfer_coefficient(moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density,
-                                          particle_density, flow_rate, particle_diameter, Mw, superficial_velocity, molar_concentration)
-    j_m= 0.61 * reynolds_number ** -0.41
-    h_GP = (j_m * gas_density * gas_heat_capacity * superficial_velocity)/((gas_heat_capacity * gas_viscosity/k_gp)**(2/3))
+
+    superficial_mass_velocity, particle_surface_area, reynolds_number, k_gp = compute_mass_transfer_coefficient(
+        moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
+        particle_diameter, Mw, superficial_velocity, molar_concentration)
+    j_m = 0.61 * reynolds_number ** -0.41
+    h_GP = (j_m * gas_density * gas_heat_capacity * superficial_velocity) / (
+                (gas_heat_capacity * gas_viscosity / k_gp) ** (2 / 3))
     return h_GP
 
 
@@ -123,9 +122,15 @@ def compute_p_saturated(A, B, temp_kelvin, C):  # Double-checked and clear! :)
     return p_saturated_pascal
 
 
-def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temperature): # c = molar_concentration
+def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temperature):  # c = molar_concentration
     partial_pressure_moisture = molar_concentration * R_gas_constant * temperature
     return partial_pressure_moisture
+
+
+def compute_relative_humidity(partial_pressure_moisture, pressure_saturated):
+    relative_humidity = partial_pressure_moisture / pressure_saturated
+    # print(partial_pressure_moisture, pressure_saturated)
+    return relative_humidity
 
 # def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temp): # c = molar_concentration
 #     partial_pressure_moisture = R_gas_constant * temp * molar_concentration
@@ -138,17 +143,14 @@ def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, tempe
 #         print('Relative humidity larger than 1, error!')
 #     return relative_humidity
 
-def compute_relative_humidity():
-    relative_humidity = 0.5
-    if relative_humidity > 1:
-        print('Relative humidity larger than 1, error!')
-    return relative_humidity
+# def compute_relative_humidity():
+#     relative_humidity = 0.5
+#     if relative_humidity > 1:
+#         print('Relative humidity larger than 1, error!')
+#     return relative_humidity
 
-def compute_relative_humidity_2(partial_pressure_moisture, pressure_saturated): #Formula according to his mail
-    RH_2=partial_pressure_moisture/(pressure_saturated)
-    return RH_2
 
-#def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
+# def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
 #    print(relative_humidity)
 #    molar_concentration = 0.01 * relative_humidity * pressure_saturated / (R * temp)
 #    return molar_concentration
