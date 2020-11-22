@@ -31,7 +31,7 @@ def heat_transfer_coefficient(moisture_diffusivity, gas_viscosity, column_diamet
     h_GP=(j_m*gas_density*gas_heat_capacity*superficial_velocity)/((gas_heat_capacity*gas_viscosity/k_gp)**(2/3))
     return h_GP
 
-print(heat_transfer_coefficient(moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, 
-                              particle_density, flow_rate, particle_diameter, Mw, superficial_velocity, molar_concentration,
-                              gas_heat_capacity))
+print(heat_transfer_coefficient(moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density,
+                                particle_density, flow_rate, particle_diameter, Mw, superficial_velocity, molar_concentration_moisture,
+                                gas_heat_capacity))
 
