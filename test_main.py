@@ -7,27 +7,20 @@ N = 1                                                                           
 alpha_parameter = 75                                                            # parameter, 10 < alpha < 100
 gas_density = 1
 particle_density = 1500
-moisture_density = 4.85 * 10**(-3)                                              # water density at room temperature
+moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
 particle_diameter= 0.00001                                                      # m
 heat_of_vaporization = 1000                                                     # delta_H
 gas_viscosity = 10 ** -5                                                        # mu_G in kg/(m*s)
 moisture_diffusivity = 10 ** -5                                                 # D_G
 R_gas_constant = 8.314                                                          # J/(K*mol) ideal gas constant
 molar_mass_moisture = 18/1000                                                   # kg/mol for water vapor
-molar_mass_dry_air = 28.97/1000
-# molar_mass_moisture = molar_mass_moisture_kg(molar_mass_moisture)             # converted in kg/mol
+molar_mass_dry_air = 28.97/1000                                                 # kg/mol
 bed_length = 0.2                                                                # m
 column_diameter = 0.1                                                           # m
 cross_sectional_area = np.pi * (column_diameter/2)**2
 volume_total = cross_sectional_area * bed_length
 
-volume_gas = (1-porosity_powder) * volume_total
-mass_gas = gas_density * volume_gas
-moles_gas = mass_gas/molar_mass_dry_air                                        # n in ideal gas law
-molar_concentration_dry_air = moles_gas/volume_gas
-molar_concentration = moisture_density/molar_mass_moisture                        # c at room temperature
-print(molar_concentration_dry_air, 'molar concentration')
-molar_volume_gas = volume_gas/moles_gas
+molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature
 
 specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # 1/m, SSA
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
@@ -50,52 +43,33 @@ B = 1730.630
 C = 233.426
 
 ################################## INITIAL CONDITIONS ##################################################################
-initial_temp = 293.15               # K, room temperature 20 degrees
-initial_relative_humidity = 0.2     # starting condition
-relative_humidity_gas = 0.5         # humidity of flowing gas
-pressure_ambient = 101325           # atmospheric pressure, Pa
-dt = 0.01                           # for now
-boiling_temp = 273.15 + 100         # for water
+temp_initial = 293.15                       # K, room temperature 20 degrees
+relative_humidity_bed_initial = 0.2         # starting condition
+relative_humidity_gas_initial = 0.5         # humidity of flowing gas
+pressure_ambient = 101325                   # atmospheric pressure, Pa
+# dt = 0.01                                   # for now
+boiling_temp = 273.15 + 100                 # for water
 
-######################################## VARIABLES #####################################################################
-pressure_saturated = compute_p_saturated(A, B, initial_temp, C)
+pressure_saturated_initial = compute_p_saturated(A, B, temp_initial, C)
+partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
 
-# partial_pressure = compute_partial_pressure_moisture(molar_concentration_dry_air, R_gas_constant, initial_temp)
-# print('Saturated pressure: ', pressure_saturated)
-# print('Partial pressure: ', partial_pressure)
+molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial)
+moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
-# relative_humidity = compute_relative_humidity(partial_pressure, pressure_saturated)
-relative_humidity = compute_relative_humidity()
-print('Rel humidity is: ', relative_humidity)
-
-#molar_concentration = molar_concentration_dry_air
-#molar_concentration1 = compute_molar_concentration(
-#    initial_relative_humidity, pressure_ambient, R_gas_constant, initial_temp) # mol/m^3 corresp. to c in our equation
-print('Molar concentration 2: ', molar_concentration)
-
-partial_pressure = compute_partial_pressure_moisture(molar_concentration, R_gas_constant, initial_temp)
-print('Saturated pressure: ', pressure_saturated)
-print('Partial pressure: ', partial_pressure)
-
-relative_humidity_2 = compute_relative_humidity_2(partial_pressure, pressure_saturated)
-print('Rel humidity 2 is: ', relative_humidity_2) #added formula according to Johan's formula in email --> magnitude doesn't make sense at all :-(
-
-k_GP = compute_mass_transfer_coefficient(
+k_GP_initial = compute_mass_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-    particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration)[3] # not yet the true value since p_sat is needed for the computation of c
-print('k_GP: ', k_GP)
-constant = k_GP * specific_surface_area * pressure_saturated / pressure_ambient # just some simplification
+    particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture)[3]
 
-heat_transfer_coefficient = compute_heat_transfer_coefficient(
+constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient # just some simplification
+
+heat_transfer_coefficient_initial = compute_heat_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-    particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration, gas_heat_capacity)
+    particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture, gas_heat_capacity)
 
-initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, initial_relative_humidity)
+initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
-print('h_GP: ', heat_transfer_coefficient)
-def X_P_init(alpha, N, RH_init):
-    X_P_init=(-np.log(-(RH_init -1))/alpha)**(1/N)
-    return X_P_init
+# print('k_GP: ', k_GP_initial)
+# print('h_GP: ', heat_transfer_coefficient_initial)
 
 #################################### TEMPORARY SIMPLIFICATIONS #########################################################
 laplacian = 1                   # TODO: compute (later, not present in simplification)
@@ -103,3 +77,21 @@ temp_gradient = 1               # TODO: compute (but how?)
 gradient_moisture = 1           # TODO: compute (later, not present in simplification)
 laplacian_moisture = 1          # TODO: compute (later, not present in simplification)
 
+########################################### TESTING ####################################################################
+moisture_converged = 0.00626672
+test = compute_equilibrium_moisture(alpha_parameter, moisture_converged, N)
+# print(test)
+
+########################################### UNUSED #####################################################################
+# volume_gas = (1-porosity_powder) * volume_total
+# mass_gas = gas_density * volume_gas
+# moles_gas = mass_gas/molar_mass_dry_air                                        # n in ideal gas law
+# molar_concentration_dry_air = moles_gas/volume_gas
+
+# print(molar_concentration_dry_air, 'molar concentration')
+# molar_volume_gas = volume_gas/moles_gas
+
+
+# partial_pressure = compute_partial_pressure_moisture(molar_concentration_dry_air, R_gas_constant, initial_temp)
+# print('Saturated pressure: ', pressure_saturated)
+# print('Partial pressure: ', partial_pressure)
