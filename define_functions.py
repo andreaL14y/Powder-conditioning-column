@@ -123,13 +123,9 @@ def compute_p_saturated(A, B, temp_kelvin, C):  # Double-checked and clear! :)
     return p_saturated_pascal
 
 
-def compute_partial_pressure_moisture(relative_humidity, pressure_saturated): # c = molar_concentration
-    partial_pressure_moisture = 0.01 * relative_humidity * pressure_saturated
+def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temperature): # c = molar_concentration
+    partial_pressure_moisture = molar_concentration * R_gas_constant * temperature
     return partial_pressure_moisture
-
-def compute_partial_pressure_moisture_2(molar_volume, temperature, R_gas_constant):
-        partial_pressure_moisture = (R_gas_constant * temperature)/molar_concentration
-        return partial_pressure_moisture
 
 # def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temp): # c = molar_concentration
 #     partial_pressure_moisture = R_gas_constant * temp * molar_concentration
@@ -149,10 +145,10 @@ def compute_relative_humidity():
     return relative_humidity
 
 def compute_relative_humidity_2(partial_pressure_moisture, pressure_saturated): #Formula according to his mail
-    RH_2=partial_pressure_moisture/(0.01*pressure_saturated)
+    RH_2=partial_pressure_moisture/(pressure_saturated)
     return RH_2
 
-def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
-    print(relative_humidity)
-    molar_concentration = 0.01 * relative_humidity * pressure_saturated / (R * temp)
-    return molar_concentration
+#def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
+#    print(relative_humidity)
+#    molar_concentration = 0.01 * relative_humidity * pressure_saturated / (R * temp)
+#    return molar_concentration

@@ -7,7 +7,7 @@ N = 1                                                                           
 alpha_parameter = 75                                                            # parameter, 10 < alpha < 100
 gas_density = 1
 particle_density = 1500
-moisture_density = 1000                                                         # water
+moisture_density = 4.85 * 10**(-3)                                              # water density at room temperature
 particle_diameter= 0.00001                                                      # m
 heat_of_vaporization = 1000                                                     # delta_H
 gas_viscosity = 10 ** -5                                                        # mu_G in kg/(m*s)
@@ -25,6 +25,7 @@ volume_gas = (1-porosity_powder) * volume_total
 mass_gas = gas_density * volume_gas
 moles_gas = mass_gas/molar_mass_dry_air                                        # n in ideal gas law
 molar_concentration_dry_air = moles_gas/volume_gas
+molar_concentration = moisture_density/molar_mass_moisture                        # c at room temperature
 print(molar_concentration_dry_air, 'molar concentration')
 molar_volume_gas = volume_gas/moles_gas
 
@@ -67,19 +68,16 @@ pressure_saturated = compute_p_saturated(A, B, initial_temp, C)
 relative_humidity = compute_relative_humidity()
 print('Rel humidity is: ', relative_humidity)
 
-partial_pressure = compute_partial_pressure_moisture(relative_humidity, pressure_saturated)
-print('Saturated pressure: ', pressure_saturated)
-print('Partial pressure: ', partial_pressure)
-
-molar_concentration = molar_concentration_dry_air
+#molar_concentration = molar_concentration_dry_air
 #molar_concentration1 = compute_molar_concentration(
 #    initial_relative_humidity, pressure_ambient, R_gas_constant, initial_temp) # mol/m^3 corresp. to c in our equation
 print('Molar concentration 2: ', molar_concentration)
 
-partial_pressure_2 = compute_partial_pressure_moisture_2(molar_volume_gas, initial_temp, R_gas_constant) #molar volume instead c (Unit analysis), doesn't really make sense
-print('Partial pressure 2 is: ', partial_pressure_2)  #added formula according to Johan's formula in email
+partial_pressure = compute_partial_pressure_moisture(molar_concentration, R_gas_constant, initial_temp)
+print('Saturated pressure: ', pressure_saturated)
+print('Partial pressure: ', partial_pressure)
 
-relative_humidity_2 = compute_relative_humidity_2(partial_pressure_2, pressure_saturated)
+relative_humidity_2 = compute_relative_humidity_2(partial_pressure, pressure_saturated)
 print('Rel humidity 2 is: ', relative_humidity_2) #added formula according to Johan's formula in email --> magnitude doesn't make sense at all :-(
 
 k_GP = compute_mass_transfer_coefficient(
