@@ -13,44 +13,63 @@ def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt
 
 def compute_temperature_particle(
         temp_particle, constant, dt, conductivity, laplacian, density, alpha, moisture, relative_humidity, N,
-        heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity):
+        heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity, x):
     conduction = conductivity * laplacian / density
     heat_of_sorption = constant * (relative_humidity - compute_equilibrium_moisture(alpha, moisture, N)) * \
                        heat_of_vaporization
     heat_transfer = heat_transfer_coefficient * specific_surface * (temp_gas - temp_particle)
 
+    # if x == 0:
+    #     print('Temp particle: ', temp_particle)
+    #     print('Heat of sorption: ', heat_of_sorption)
+    #     print('Heat transfer particle: ', heat_transfer, '\n')
+
     # change_temperature = (conduction + heat_of_sorption + heat_transfer)/heat_capacity
+
     change_temperature = (heat_of_sorption + heat_transfer) / heat_capacity
     temp_particle += change_temperature * dt
     return temp_particle
 
 
-def compute_moisture_gas(moisture_particle, alpha, N, relative_humidity, dt, constant, velocity, diffusivity,
-                         gradient_moisture, laplacian, density_gas, density_particle, porosity):
+def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_humidity, dt, constant, velocity, diffusivity,
+                         gradient_moisture, laplacian, density_gas, density_particle, porosity, x):
+
     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
     change_moisture_absorption = - constant * density_particle * porosity * \
                                  (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
-    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
+    # change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
+    #                   velocity * gradient_moisture
+
+    change_moisture = (change_moisture_absorption) / (density_gas * (1 - porosity)) - \
                       velocity * gradient_moisture
 
-    moisture_particle_current = moisture_particle + change_moisture * dt
-    return moisture_particle_current
+    moisture_gas_current = moisture_gas + change_moisture * dt
+
+    # if x == 0:
+    #     print('Moisture gas: ', moisture_gas_current)
+        # print('Moisture chchange_moisture)
+    return moisture_gas_current
 
 
 def compute_temperature_gas(
         temp_particle, constant, dt, conductivity_gas, laplacian, density_gas, alpha, moisture, N, heat_capacity_vapor,
         relative_humidity, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity_wet_gas, velocity,
-        temp_gradient, porosity, density_particle):
+        temp_gradient, porosity, density_particle, x):
     conduction = conductivity_gas * (1 - porosity) * laplacian
     heat_of_sorption = density_particle * porosity * constant * \
                        (relative_humidity - compute_equilibrium_moisture(alpha, moisture, N)) * heat_capacity_vapor * \
                        (temp_gas - temp_particle)
-    print('Heat of sorption: ', heat_of_sorption)
+    # print('Heat of sorption: ', heat_of_sorption)
+
     heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
                     (temp_gas - temp_particle)
-    print('Heat transfer: ', heat_transfer)
-    change_temperature = (heat_of_sorption + heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas) - \
-                         velocity * temp_gradient
+    if x == 0:
+        print('Heat transfer gas: ', heat_transfer/(porosity * density_particle))
+        print('Temp diff: ', temp_gas - temp_particle)
+
+    # change_temperature = (heat_of_sorption + heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas) - \
+    #                      velocity * temp_gradient
+    change_temperature = (heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas)
     temp_gas += change_temperature * dt
     return temp_gas
 
