@@ -1,12 +1,13 @@
 import numpy as np
 from define_functions import*
 from test_main import*
-number_of_time_steps = 5
+number_of_time_steps = 6
 
-number_of_divisions = 1000
+number_of_divisions = 10000
 d_length = bed_length/number_of_divisions
 dt = d_length / superficial_velocity
 print('time step: ', dt)
+specific_surface_area = 400
 
 ################################### SET INITIAL CONDITIONS #############################################################
 relative_humidity = np.zeros(number_of_divisions) + relative_humidity_gas_initial
@@ -16,9 +17,11 @@ molar_concentration_moisture = np.zeros(number_of_divisions) + molar_concentrati
 
 mass_transfer_coefficient = np.zeros(number_of_divisions) + k_GP_initial
 heat_transfer_coefficient = np.zeros(number_of_divisions) + heat_transfer_coefficient_initial
+print('h_GP: ', heat_transfer_coefficient_initial)
+print('k_GP: ', mass_transfer_coefficient)
 constant = np.zeros(number_of_divisions) + constant_initial
 
-moisture_particle = np.zeros((1, number_of_divisions)) + initial_moisture_particle
+moisture_particle = np.zeros((1, number_of_divisions)) + molar_concentration_moisture_initial
 
 temp_particle = np.zeros((1, number_of_divisions)) + temp_initial
 moisture_gas = np.zeros((1, number_of_divisions)) + relative_humidity_gas_initial
@@ -70,17 +73,19 @@ for t in range(number_of_time_steps):
                 flow_rate, particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture[x],
                 gas_heat_capacity)
 
-# print('Change in moisture particles:', (moisture_particle - moisture_particle_initial)[0, 0:5])
-print('Change in temp particles:\n', (temp_particle - temp_initial)[0, 0:5])
 
-# print('Change in moisture gas:', (moisture_gas - relative_humidity_gas_initial)[0, 0:5])
+
+
+print('Change in temp particles:\n', (temp_particle - temp_initial)[0, 0:5])
+print('Change in temp gas:\n', (temp_gas - temp_initial)[0, 0:5])
+
+print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0, 0:5])
+print('Change in moisture gas:\n', (moisture_gas - relative_humidity_gas_initial)[0, 0:5])
 # print('Moisture gas:', (moisture_gas)[0, 0:5])
 # TODO: moisture in gas keeps going down, becoming negative. This is since RH is not changing, since gas temp and molar
 #  concentration are not changing. How does c change?!
 
-
-print('Change in temp gas:\n', (temp_gas - temp_initial)[0, 0:5])
 # print(relative_humidity_gas_initial - moisture_gas)
 # print(temp_particle - temp_initial)
-print(temp_gas[0, 0:5])
+# print(temp_gas[0, 0:5])
 # print(relative_humidity)
