@@ -13,7 +13,7 @@ def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt
 
 def compute_temperature_particle(
         temp_particle, constant, dt, conductivity, laplacian, density, alpha, moisture, relative_humidity, N,
-        heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity, x):
+        heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity, x): #TODO: Xis just a helper variable?
     conduction = conductivity * laplacian / density
     heat_of_sorption = constant * (relative_humidity - compute_equilibrium_moisture(alpha, moisture, N)) * \
                        heat_of_vaporization

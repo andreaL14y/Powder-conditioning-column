@@ -20,17 +20,16 @@ column_diameter = 0.1                                                           
 cross_sectional_area = np.pi * (column_diameter/2)**2
 volume_total = cross_sectional_area * bed_length
 
-molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature, moles/m3
+molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature , moles/m3
 
 specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # 1/m, SSA
-# print(specific_surface_area)
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
 flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)  # m3/s
-# gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute, bed_length, column_diameter, porosity_powder) # u in m/s TODO: u compared to U?
+gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute, bed_length, column_diameter, porosity_powder) # u in m/s TODO: u compared to U?, I commented it in again, why outcommented?
 superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                 # superficial velocity U in m/s
 
 # Heat capacities (C's) and conductivities (lambdas)
-moisture_vapor_heat_capacity = 2000         # J/(kg*K), C_P_V, heat capacity water vapor)
+moisture_vapor_heat_capacity = 2000         # J/(kg*K), C_P_V, heat capacity gas water vapor)
 moisture_liquid_heat_capacity = 4000        # J/(kg*K) C?? Heat capacity liquid water
 particle_heat_capacity = 1000               # C_P_P AND C_P_WP
 gas_heat_capacity = 1000                    # C_P_WG
@@ -54,7 +53,7 @@ boiling_temp = 273.15 + 100                 # for water
 pressure_saturated_initial = compute_p_saturated(A, B, temp_initial, C)
 partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
 
-molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial)
+# molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial) # TODO: Delete? What did we do here? Thats old right? we have c defined above already
 moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
 k_GP_initial = compute_mass_transfer_coefficient(
@@ -67,7 +66,7 @@ heat_transfer_coefficient_initial = compute_heat_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
     particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture, gas_heat_capacity)
 
-initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
+initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial) #TODO: delete, same as moisture_particle_initial above
 
 # print('k_GP: ', k_GP_initial)
 # print('h_GP: ', heat_transfer_coefficient_initial)
