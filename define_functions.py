@@ -92,7 +92,9 @@ def compute_velocity(volumetric_flow_rate_liters_per_minute, length, diameter, v
 def spec_surface_area(particle_diameter, particle_density):
     # S_P in m^2/kg - assuming spherical particles S_P=surface_area/volume*density
     r = particle_diameter / 2
-    SSA = (4 * np.pi * r ** 2) / (4 / 3 * np.pi * r ** 3 * particle_density)
+    SSA = 3 / (r * particle_density)
+    # print('SSA: ', SSA)
+    # SSA = (4 * np.pi * r ** 2) / (4 / 3 * np.pi * r ** 3 * particle_density)
     return SSA
 
 
