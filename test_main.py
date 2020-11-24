@@ -22,10 +22,9 @@ volume_total = cross_sectional_area * bed_length
 
 molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature , moles/m3
 
-specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # 1/m, SSA
+specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # m2/kg, SSA
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
 flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)  # m3/s
-gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute, bed_length, column_diameter, porosity_powder) # u in m/s TODO: u compared to U?, I commented it in again, why outcommented?
 superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                 # superficial velocity U in m/s
 
 # Heat capacities (C's) and conductivities (lambdas)
@@ -53,7 +52,11 @@ boiling_temp = 273.15 + 100                 # for water
 pressure_saturated_initial = compute_p_saturated(A, B, temp_initial, C)
 partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
 
-# molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial) # TODO: Delete? What did we do here? Thats old right? we have c defined above already
+molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial) # TODO: Delete? What did we do here? Thats old right? we have c defined above already
+# print('Johans c: ', molar_concentration_moisture_initial)
+# print('Our c: ', molar_concentration_moisture)
+
+
 moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
 k_GP_initial = compute_mass_transfer_coefficient(
