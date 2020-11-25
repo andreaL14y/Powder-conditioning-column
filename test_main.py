@@ -4,7 +4,7 @@ from define_functions import*
 ########################################### PARAMETERS #################################################################
 porosity_powder = 0.6
 N = 1                                                                           # Parameter, assume 1
-alpha_parameter = 75                                                            # parameter, 10 < alpha < 100
+alpha_parameter = 25                                                            # parameter, 10 < alpha < 100
 gas_density = 1
 particle_density = 1500
 moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
@@ -50,12 +50,12 @@ pressure_ambient = 101325                   # atmospheric pressure, Pa
 boiling_temp = 273.15 + 100                 # for water
 
 pressure_saturated_initial = compute_p_saturated(A, B, temp_initial, C)
+# print(pressure_saturated_initial)
 partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
 
-molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial) # TODO: Delete? What did we do here? Thats old right? we have c defined above already
+molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial)
 # print('Johans c: ', molar_concentration_moisture_initial)
 # print('Our c: ', molar_concentration_moisture)
-
 
 moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
@@ -93,7 +93,6 @@ test = compute_equilibrium_moisture(alpha_parameter, moisture_converged, N)
 
 # print(molar_concentration_dry_air, 'molar concentration')
 # molar_volume_gas = volume_gas/moles_gas
-
 
 # partial_pressure = compute_partial_pressure_moisture(molar_concentration_dry_air, R_gas_constant, initial_temp)
 # print('Saturated pressure: ', pressure_saturated)

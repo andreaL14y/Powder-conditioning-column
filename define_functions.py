@@ -13,18 +13,19 @@ def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt
 
 def compute_temperature_particle(
         temp_particle, constant, dt, conductivity, laplacian, density, alpha, moisture, relative_humidity, N,
-        heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity, x): #TODO: Xis just a helper variable?
+        heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity, x):
     conduction = conductivity * laplacian / density
     heat_of_sorption = constant * (relative_humidity - compute_equilibrium_moisture(alpha, moisture, N)) * \
                        heat_of_vaporization
     heat_transfer = heat_transfer_coefficient * specific_surface * (temp_gas - temp_particle)
 
     # change_temperature = (conduction + heat_of_sorption + heat_transfer)/heat_capacity
-
+    if x == 0:
+        print('\n\nTemp particle: ', temp_particle)
     change_temperature = (heat_of_sorption + heat_transfer) / heat_capacity
     temp_particle += change_temperature * dt
     if x == 0:
-        print('\n\nTemp particle: ', temp_particle)
+        print('Temp particle: ', temp_particle)
         print('Heat of sorption: ', heat_of_sorption)
         print('Heat transfer particle: ', heat_transfer)
         print('Temp change particle: ', change_temperature)
@@ -37,6 +38,8 @@ def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_hum
     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
     change_moisture_absorption = - constant * density_particle * porosity * \
                                  (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
+    # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
+    # print('Moisture particle in eq. fn: ', moisture_particle)
     # change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
     #                   velocity * gradient_moisture
 
@@ -67,7 +70,7 @@ def compute_temperature_gas(
         print('\nTemp gas: ', temp_gas)
         print('Heat transfer gas: ', heat_transfer/(porosity * density_particle))
         print('Temp diff: ', temp_gas - temp_particle)
-        print('h_GP: ', heat_transfer_coefficient)
+        # print('h_GP: ', heat_transfer_coefficient)
 
     # change_temperature = (heat_of_sorption + heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas) - \
     #                      velocity * temp_gradient
@@ -108,6 +111,7 @@ def compute_initial_moisture_particle(alpha, N, relative_humidity):
 ######################################### RECURRENT ####################################################################
 def compute_equilibrium_moisture(alpha, moisture_particle, N):
     f_of_x = 1 - np.exp(-alpha * moisture_particle ** N)
+
     return f_of_x
 
 
@@ -129,7 +133,7 @@ def compute_heat_transfer_coefficient(
         moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
         particle_diameter, Mw, superficial_velocity, molar_concentration, gas_heat_capacity, conductivity_gas):
 
-    reynolds_number= compute_mass_transfer_coefficient(
+    reynolds_number = compute_mass_transfer_coefficient(
         moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
         particle_diameter, Mw, superficial_velocity, molar_concentration)[2]
     j_m = 0.61 * reynolds_number ** -0.41
