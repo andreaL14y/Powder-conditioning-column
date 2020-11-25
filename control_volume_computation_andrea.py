@@ -5,7 +5,7 @@ from test_main import*
 
 time_step=0.01
 number_measure_points=int(bed_length/(time_step*superficial_velocity))+1 #number of measure points
-end_time=20
+end_time=1
 
 ############### INITIAL CONDITIONS ############################################################
 moisture_particle = np.zeros(number_measure_points) + moisture_particle_initial
@@ -89,8 +89,8 @@ for t in range(int(end_time/time_step)+1):
         #     print('i: ', i)
         #     print('temp particle: ', temperature_particle)
         #     print('moisture particle: ', moisture_particle)
-print('Change in temp particles:\n', (temperature_particle - temp_initial)[0, 0:5])
-print('Change in temp gas:\n', (temperature_gas - temp_initial)[0, 0:5])
+# print('Change in temp particles:\n', (temperature_particle - temp_initial)[0:5])
+# print('Change in temp gas:\n', (temperature_gas - temp_initial)[0:5])
 
-print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0, 0:5])
-print('Change in moisture gas:\n', (moisture_gas - relative_humidity_gas_initial)[0, 0:5])
+# print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0:5])
+# print('Change in moisture gas:\n', (moisture_gas - relative_humidity_gas_initial)[0:5])
