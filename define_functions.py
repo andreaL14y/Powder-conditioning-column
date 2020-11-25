@@ -155,6 +155,15 @@ def compute_relative_humidity(partial_pressure_moisture, pressure_saturated):
     # print(partial_pressure_moisture, pressure_saturated)
     return relative_humidity
 
+def compute_gradient(vektor, index):    # Should work for temperature and moisture, where vektor 
+                                        #is an array input e.g. moisture gas and the index is the looping variable x
+    length = len(vektor)
+    if index > (length-2):
+        grad = 0 
+    else: 
+        grad = vektor[index+1]-vektor[index]
+    return grad
+
 # def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, temp): # c = molar_concentration
 #     partial_pressure_moisture = R_gas_constant * temp * molar_concentration
 #     return partial_pressure_moisture
