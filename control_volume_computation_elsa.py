@@ -71,7 +71,7 @@ for t in range(number_of_time_steps):
             heat_transfer_coefficient[x] = compute_heat_transfer_coefficient(
                 moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density,
                 flow_rate, particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture[x],
-                gas_heat_capacity)
+                gas_heat_capacity, conductivity_gas)
 
 
 
