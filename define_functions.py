@@ -127,14 +127,14 @@ def compute_mass_transfer_coefficient(
 
 def compute_heat_transfer_coefficient(
         moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-        particle_diameter, Mw, superficial_velocity, molar_concentration, gas_heat_capacity):
+        particle_diameter, Mw, superficial_velocity, molar_concentration, gas_heat_capacity, conductivity_gas):
 
-    superficial_mass_velocity, particle_surface_area, reynolds_number, k_gp = compute_mass_transfer_coefficient(
+    reynolds_number= compute_mass_transfer_coefficient(
         moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-        particle_diameter, Mw, superficial_velocity, molar_concentration)
+        particle_diameter, Mw, superficial_velocity, molar_concentration)[2]
     j_m = 0.61 * reynolds_number ** -0.41
     h_GP = (j_m * gas_density * gas_heat_capacity * superficial_velocity) / (
-                (gas_heat_capacity * gas_viscosity / k_gp) ** (2 / 3))
+                (gas_heat_capacity * gas_viscosity / conductivity_gas) ** (2 / 3))
     return h_GP
 
 
