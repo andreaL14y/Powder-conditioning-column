@@ -67,7 +67,7 @@ constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_ini
 
 heat_transfer_coefficient_initial = compute_heat_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-    particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture_initial, gas_heat_capacity)
+    particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture_initial, gas_heat_capacity, conductivity_gas)
 
 # initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial) #TODO: delete, same as moisture_particle_initial above
 
