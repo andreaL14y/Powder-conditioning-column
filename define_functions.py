@@ -38,12 +38,16 @@ def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_hum
     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
     change_moisture_absorption = - constant * density_particle * porosity * \
                                  (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
-    # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
-    # print('Moisture particle in eq. fn: ', moisture_particle)
+    if x == 0:
+        print('Moisture diffusion: ', change_moisture_diffusion)
+        print('Moisture absorption: ', change_moisture_absorption)
+        # print('u * nablaY: ', velocity * gradient_moisture)
+        # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
+        # print('Moisture particle in eq. fn: ', moisture_particle)
     # change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
     #                   velocity * gradient_moisture
 
-    change_moisture = (change_moisture_absorption) / (density_gas * (1 - porosity)) - \
+    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
                       velocity * gradient_moisture
 
     moisture_gas_current = moisture_gas + change_moisture * dt
