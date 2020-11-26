@@ -20,15 +20,15 @@ def compute_temperature_particle(
     heat_transfer = heat_transfer_coefficient * specific_surface * (temp_gas - temp_particle)
 
     # change_temperature = (conduction + heat_of_sorption + heat_transfer)/heat_capacity
-    if x == 0:
-        print('\n\nTemp particle: ', temp_particle)
+    # if x == 0:
+    #     print('\n\nTemp particle: ', temp_particle)
     change_temperature = (heat_of_sorption + heat_transfer) / heat_capacity
     temp_particle += change_temperature * dt
-    if x == 0:
-        print('Temp particle: ', temp_particle)
-        print('Heat of sorption: ', heat_of_sorption)
-        print('Heat transfer particle: ', heat_transfer)
-        print('Temp change particle: ', change_temperature)
+    # if x == 0:
+    #     print('Temp particle: ', temp_particle)
+    #     print('Heat of sorption: ', heat_of_sorption)
+    #     print('Heat transfer particle: ', heat_transfer)
+    #     print('Temp change particle: ', change_temperature)
     return temp_particle
 
 
@@ -64,18 +64,23 @@ def compute_temperature_gas(
                        (temp_gas - temp_particle)
     # print('Heat of sorption: ', heat_of_sorption)
 
-    heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
-                    (temp_gas - temp_particle)
-    if x == 0:
-        print('\nTemp gas: ', temp_gas)
-        print('Heat transfer gas: ', heat_transfer/(porosity * density_particle))
-        print('Temp diff: ', temp_gas - temp_particle)
+    # heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
+    #                 (temp_gas - temp_particle)
+    heat_transfer = -heat_transfer_coefficient * density_gas * (1-porosity) * specific_surface * \
+                    (temp_gas - temp_particle)                   # TODO: density and porosity of gas or particle here?!
+    # if x == 0:
+    #     print('\nTemp gas: ', temp_gas)
+    #     print('Heat transfer gas: ', heat_transfer)
+    #     print('Temp diff: ', temp_gas - temp_particle)
         # print('h_GP: ', heat_transfer_coefficient)
 
     # change_temperature = (heat_of_sorption + heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas) - \
     #                      velocity * temp_gradient
-    change_temperature = (heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas)
+    change_temperature = (heat_transfer + heat_of_sorption) / (density_gas * (1 - porosity) * heat_capacity_wet_gas)
     temp_gas += change_temperature * dt
+    # if x == 0:
+    #     print('Temp change gas/s: ', change_temperature)
+    #     print('Temp gas: ', temp_gas)
     return temp_gas
 
 
