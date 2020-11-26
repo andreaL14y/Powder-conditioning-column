@@ -1,12 +1,14 @@
 import numpy as np
 from define_functions import*
 from test_main import*
-number_of_time_steps = 6
+number_of_time_steps = 50
 
 number_of_divisions = 1000
-d_length = bed_length/number_of_divisions
+d_length = bed_length/number_of_divisions           # 0.2 mm w 1000 divisions
 dt = d_length / superficial_velocity
 print('time step: ', dt)
+print('Length per step: ', d_length)
+print('Gas velocity: ', superficial_velocity)       # 2 mm per s
 specific_surface_area = 400
 
 ################################### SET INITIAL CONDITIONS #############################################################
@@ -17,7 +19,7 @@ molar_concentration_moisture = np.zeros(number_of_divisions) + molar_concentrati
 
 mass_transfer_coefficient = np.zeros(number_of_divisions) + k_GP_initial
 heat_transfer_coefficient = heat_transfer_coefficient_initial
-# print('h_GP: ', heat_transfer_coefficient_initial)
+print('h_GP: ', heat_transfer_coefficient_initial)
 # print('k_GP: ', mass_transfer_coefficient)
 constant = np.zeros(number_of_divisions) + constant_initial
 
