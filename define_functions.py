@@ -5,10 +5,18 @@ import math
 
 # constant = k_GP * surface_area * pressure/pressure
 ###################################### MAIN EQUATIONS (1-4) ############################################################
-def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt, constant):
-    change_moisture = constant * (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
-    moisture_particle_current = moisture_particle + change_moisture * dt
-    return moisture_particle_current
+def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt, constant, moisture_gas, density_particle, porosity, density_gas):  # moisture_gas added
+
+    change_moisture_x = constant * (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))      # dX/dt
+    moisture_difference_x = change_moisture_x * dt                                                                      # dX
+    moisture_particle_current = moisture_particle + moisture_difference_x
+
+    # moisture_difference_y = change_moisture_y * dt
+    moisture_difference_y_absorption = - change_moisture_x * density_particle * porosity/(density_gas * (1-porosity))      # dY/dt
+    # moisture_difference_y_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
+    # moisture_difference_y = moisture_difference_y_absorption + moisture_difference_y_diffusion
+    moisture_gas_current = moisture_gas + moisture_difference_y_absorption * dt
+    return moisture_particle_current, moisture_gas_current, moisture_difference_y_absorption   # return only particle
 
 
 def compute_temperature_particle(
@@ -32,30 +40,29 @@ def compute_temperature_particle(
     return temp_particle
 
 
-def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_humidity, dt, constant, velocity, diffusivity,
-                         gradient_moisture, laplacian, density_gas, density_particle, porosity, x):
-
-    change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
-    change_moisture_absorption = - constant * density_particle * porosity * \
-                                 (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
-    if x == 0:
-        print('Moisture diffusion: ', change_moisture_diffusion)
-        print('Moisture absorption: ', change_moisture_absorption)
-        # print('u * nablaY: ', velocity * gradient_moisture)
-        # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
-        # print('Moisture particle in eq. fn: ', moisture_particle)
-    # change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
-    #                   velocity * gradient_moisture
-
-    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
-                      velocity * gradient_moisture
-
-    moisture_gas_current = moisture_gas + change_moisture * dt
-
-    # if x == 0:
-    #     print('Moisture gas: ', moisture_gas_current)
-        # print('Moisture chchange_moisture)
-    return moisture_gas_current
+# def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_humidity, dt, constant, velocity, diffusivity,
+#                          gradient_moisture, laplacian, density_gas, density_particle, porosity, x):
+#
+#     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
+#     change_moisture_absorption = - constant * density_particle * porosity * \
+#                                  (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
+#     if x == 0:
+#         print('Moisture diffusion: ', change_moisture_diffusion)
+#         print('Moisture absorption: ', change_moisture_absorption)
+#         # print('u * nablaY: ', velocity * gradient_moisture)
+#         # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
+#         # print('Moisture particle in eq. fn: ', moisture_particle)
+#     # change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
+#     #                   velocity * gradient_moisture
+#
+#     change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
+#                       velocity * gradient_moisture
+#
+#     moisture_gas_current = moisture_gas + change_moisture * dt
+#     # if x == 0:
+#     #     print('Moisture gas: ', moisture_gas_current)
+#         # print('Moisture chchange_moisture)
+#     return moisture_gas_current
 
 
 def compute_temperature_gas(
@@ -73,6 +80,7 @@ def compute_temperature_gas(
     heat_transfer = -heat_transfer_coefficient * density_gas * (1-porosity) * specific_surface * \
                     (temp_gas - temp_particle)                   # TODO: density and porosity of gas or particle here?!
     # if x == 0:
+    #     print('RH for gas temp: ', relative_humidity)
     #     print('\nTemp gas: ', temp_gas)
     #     print('Heat transfer gas: ', heat_transfer)
     #     print('Temp diff: ', temp_gas - temp_particle)
@@ -86,6 +94,21 @@ def compute_temperature_gas(
     #     print('Temp change gas/s: ', change_temperature)
     #     print('Temp gas: ', temp_gas)
     return temp_gas
+
+def compute_relative_humidity(
+        moisture_particle, alpha, N, moisture_difference, dt, constant, velocity, diffusivity,
+                         gradient_moisture, laplacian, density_gas, density_particle, porosity, x):
+
+    change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
+
+    LH = change_moisture_diffusion - density_gas * (1-porosity) * (moisture_difference/dt + velocity * gradient_moisture)
+    # k_GP * surface_area * pressure / pressure
+    relative_humidity = LH / (constant * density_particle * porosity) + compute_equilibrium_moisture(alpha, moisture_particle, N)
+    if x == 0:
+        print('RH: ', relative_humidity)
+        # print('Moisture absorption: ', change_moisture_absorption)
+
+    return relative_humidity
 
 
 ######################################### ONE-TIME USE #################################################################
@@ -163,10 +186,10 @@ def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, tempe
     return partial_pressure_moisture
 
 
-def compute_relative_humidity(partial_pressure_moisture, pressure_saturated):
-    relative_humidity = partial_pressure_moisture / pressure_saturated
-    # print(partial_pressure_moisture, pressure_saturated)
-    return relative_humidity
+# def compute_relative_humidity(partial_pressure_moisture, pressure_saturated):
+#     relative_humidity = partial_pressure_moisture / pressure_saturated
+#     # print(partial_pressure_moisture, pressure_saturated)
+#     return relative_humidity
 
 def compute_gradient(vektor, index):    # Should work for temperature and moisture, where vektor 
                                         #is an array input e.g. moisture gas and the index is the looping variable x
