@@ -3,7 +3,7 @@ import math
 from define_functions import*
 from test_main import*
 
-time_step=0.01
+time_step=0.2
 number_measure_points=int(bed_length/(time_step*superficial_velocity))+1 #number of measure points
 end_time=1
 
@@ -26,12 +26,6 @@ partial_pressure_moisture = np.zeros(number_measure_points)+partial_pressure_moi
 
 constant = np.zeros(number_measure_points)+constant_initial #dep. on pressure saturated, k_GP         #TODO: CHECK THIS, this formula is simplified
 k_GP = np.zeros(number_measure_points)+k_GP_initial #dep. on molar_concentration_moisture
-
-############### HELPER VARIABLES ###############################################################
-superficial_mass_velocity=np.zeros(number_measure_points)
-particle_surface_area=np.zeros(number_measure_points)
-reynolds_number=np.zeros(number_measure_points)
-
 
 ############### UPDATE OF PARTICLE PARAMETERS THAT THE GAS HAS YET REACHED #####################
 
@@ -89,8 +83,8 @@ for t in range(int(end_time/time_step)+1):
         #     print('i: ', i)
         #     print('temp particle: ', temperature_particle)
         #     print('moisture particle: ', moisture_particle)
-# print('Change in temp particles:\n', (temperature_particle - temp_initial)[0:5])
-# print('Change in temp gas:\n', (temperature_gas - temp_initial)[0:5])
+print('Change in temp particles:\n', (temperature_particle - temp_initial)[0:5])
+print('Change in temp gas:\n', (temperature_gas - temp_initial)[0:5])
 
-# print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0:5])
-# print('Change in moisture gas:\n', (moisture_gas - relative_humidity_gas_initial)[0:5])
+print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0:5])
+print('Change in moisture gas:\n', (moisture_gas - relative_humidity_gas_initial)[0:5])
