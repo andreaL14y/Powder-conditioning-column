@@ -71,9 +71,6 @@ heat_transfer_coefficient_initial = compute_heat_transfer_coefficient(
 
 # initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial) #TODO: delete, same as moisture_particle_initial above
 
-# print('k_GP: ', k_GP_initial)
-# print('h_GP: ', heat_transfer_coefficient_initial)
-
 #################################### TEMPORARY SIMPLIFICATIONS #########################################################
 laplacian = 1                   # TODO: compute (later, not present in simplification)
 temp_gradient = 1               # TODO: compute (but how?)
