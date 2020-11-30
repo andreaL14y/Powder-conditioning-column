@@ -214,6 +214,10 @@ def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, tempe
     partial_pressure_moisture = molar_concentration * R_gas_constant * temperature
     return partial_pressure_moisture
 
+def compute_partial_pressure_moisture2(molar_mass, R_gas_constant, temperature, gas_density):
+    pp=gas_density*R_gas_constant/molar_mass*temperature
+    return pp 
+
 
 def compute_gradient(vector, index, space_step):    # Should work for temperature and moisture, where vector
                                         #is an array input e.g. moisture gas and the index is the looping variable x
@@ -251,7 +255,3 @@ def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
 #     if relative_humidity > 1:
 #         print('Relative humidity larger than 1, error!')
 #     return relative_humidity
-
-
-
-
