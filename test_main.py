@@ -7,7 +7,7 @@ N = 1                                                                           
 alpha_parameter = 25                                                            # parameter, 10 < alpha < 100
 gas_density = 1
 particle_density = 1500
-moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
+# moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
 particle_diameter= 0.00001                                                      # m
 heat_of_vaporization = 1000                                                     # delta_H
 gas_viscosity = 10 ** -5                                                        # mu_G in kg/(m*s)
@@ -46,16 +46,12 @@ temp_initial = 293.15                       # K, room temperature 20 degrees
 relative_humidity_bed_initial = 0.2         # starting condition
 relative_humidity_gas_initial = 0.5         # humidity of flowing gas
 pressure_ambient = 101325                   # atmospheric pressure, Pa
-# dt = 0.01                                   # for now
 boiling_temp = 273.15 + 100                 # for water
 
 pressure_saturated_initial = compute_p_saturated(A, B, temp_initial, C)
-# print(pressure_saturated_initial)
 partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
 
 molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial)
-# print('Johans c: ', molar_concentration_moisture_initial)
-# print('Our c: ', molar_concentration_moisture)
 
 moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
@@ -69,13 +65,10 @@ heat_transfer_coefficient_initial = compute_heat_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
     particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture_initial, gas_heat_capacity, conductivity_gas)
 
-# initial_moisture_particle = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial) #TODO: delete, same as moisture_particle_initial above
-
-#################################### TEMPORARY SIMPLIFICATIONS #########################################################
-laplacian = 1                   # TODO: compute (later, not present in simplification)
-temp_gradient = 1               # TODO: compute (but how?)
-gradient_moisture = 1           # TODO: compute (later, not present in simplification)
-laplacian_moisture = 1          # TODO: compute (later, not present in simplification)
+laplacian_initial = 0
+temp_gradient_initial = 0
+gradient_moisture_initial = 0
+laplacian_moisture_initial = 0
 
 ########################################### TESTING ####################################################################
 moisture_converged = 0.00626672
@@ -83,14 +76,6 @@ test = compute_equilibrium_moisture(alpha_parameter, moisture_converged, N)
 # print(test)
 
 ########################################### UNUSED #####################################################################
-# volume_gas = (1-porosity_powder) * volume_total
 # mass_gas = gas_density * volume_gas
 # moles_gas = mass_gas/molar_mass_dry_air                                        # n in ideal gas law
 # molar_concentration_dry_air = moles_gas/volume_gas
-
-# print(molar_concentration_dry_air, 'molar concentration')
-# molar_volume_gas = volume_gas/moles_gas
-
-# partial_pressure = compute_partial_pressure_moisture(molar_concentration_dry_air, R_gas_constant, initial_temp)
-# print('Saturated pressure: ', pressure_saturated)
-# print('Partial pressure: ', partial_pressure)
