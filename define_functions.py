@@ -244,7 +244,7 @@ def compute_laplacian(vector, index, space_step):
 
 def compute_molar_concentration(relative_humidity, pressure_saturated, R, temp):
    print(relative_humidity)
-   molar_concentration = 0.01 * relative_humidity * pressure_saturated / (R * temp)
+   molar_concentration = relative_humidity * pressure_saturated / (R * temp)        #TODO: erased *0.01
    return molar_concentration
 
 
