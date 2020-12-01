@@ -170,7 +170,10 @@ def compute_initial_moisture_particle(alpha, N, relative_humidity):
 
 ######################################### RECURRENT ####################################################################
 def compute_equilibrium_moisture(alpha, moisture_particle, N):
-    f_of_x = 1 - np.exp(-alpha * moisture_particle ** N)
+    if moisture_particle < alpha: 
+        f_of_x = alpha * moisture_particle
+    else: 
+        f_of_x = 1 - np.exp(-alpha * moisture_particle ** N)
     return f_of_x
 
 
