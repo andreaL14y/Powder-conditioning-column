@@ -215,7 +215,7 @@ def compute_partial_pressure_moisture(molar_concentration, R_gas_constant, tempe
     return partial_pressure_moisture
 
 def compute_partial_pressure_moisture2(molar_mass, R_gas_constant, temperature, gas_density):
-    pp=gas_density*R_gas_constant/molar_mass*temperature
+    pp = gas_density * R_gas_constant/molar_mass * temperature
     return pp 
 
 

@@ -7,7 +7,7 @@ N = 1                                                                           
 alpha_parameter = 25                                                            # parameter, 10 < alpha < 100
 gas_density = 1
 particle_density = 1500
-# moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
+moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
 particle_diameter= 0.00001                                                      # m
 heat_of_vaporization = 1000                                                     # delta_H
 gas_viscosity = 10 ** -5                                                        # mu_G in kg/(m*s)
@@ -20,7 +20,7 @@ column_diameter = 0.1                                                           
 cross_sectional_area = np.pi * (column_diameter/2)**2
 volume_total = cross_sectional_area * bed_length
 
-# molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature , moles/m3
+molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature , moles/m3
 
 specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # m2/kg, SSA
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
@@ -79,3 +79,9 @@ test = compute_equilibrium_moisture(alpha_parameter, moisture_converged, N)
 # mass_gas = gas_density * volume_gas
 # moles_gas = mass_gas/molar_mass_dry_air                                        # n in ideal gas law
 # molar_concentration_dry_air = moles_gas/volume_gas
+
+
+# test = compute_partial_pressure_moisture(molar_concentration_moisture_initial, R_gas_constant, temp_initial)
+# test2 = compute_partial_pressure_moisture2(molar_mass_moisture, R_gas_constant, temp_initial, moisture_density)
+#
+# print(test, test2)
