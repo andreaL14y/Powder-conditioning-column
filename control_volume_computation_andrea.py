@@ -16,11 +16,13 @@ print('time step: ', time_step)
 print('Length per step: ', space_step)
 print('Gas velocity: ', superficial_velocity)           # 2 mm per s
 
-############### INITIAL CONDITIONS ############################################################
+############### INITIAL CONDITIONS ############################################################ 
+# #TODO: actually we want all vectors to be 3 dimensional later: 2 dimensional in space and 1 dim in time (number of measure points, number of measure points, number of time steps)
+#        or even better: for each time t in time steps we want a two dimensional vector in space.
 moisture_particle = np.zeros(number_measure_points) + moisture_particle_initial
 temperature_particle = np.zeros(number_measure_points) + temp_initial
-moisture_gas = np.zeros(number_measure_points) + relative_humidity_gas_initial                      #TODO: Check initially RH_0=Y_G,0
-moisture_gas_2 = np.zeros(number_measure_points) + relative_humidity_gas_initial                    #TODO: Check initially RH_0=Y_G,0
+moisture_gas = np.zeros(number_measure_points) + moisture_gas_initial                      #TODO: Check initially RH_0=Y_G,0
+moisture_gas_2 = np.zeros(number_measure_points) + moisture_gas_initial                   #TODO: Check initially RH_0=Y_G,0
 temperature_gas = np.zeros(number_measure_points) + temp_initial
 
 ############### INITIAL PARAMETERS THAT CHANGE DIRECTLY WITH THE TEMPERATURE ###################    #TODO: temperature of the gas? or some mean?
@@ -41,10 +43,10 @@ k_GP = np.zeros(number_measure_points)+k_GP_initial #dep. on molar_concentration
 moisture_difference_y_absorption=np.zeros(number_measure_points)
 moisture_gradient_gas=np.zeros(number_measure_points)
 
-    # position_gas[k]=k*time_step*superficial_velocity = approximately measure point
+# position_gas[k]=k*time_step*superficial_velocity = approximately measure point
+#Y_0+change in moisture = Y_1 --> RH_2
 for t in range(time_steps):
     at_most_bed_length = min(number_measure_points, t+1)
-    moisture_gas_old = moisture_gas
     for i in range(at_most_bed_length):
 
         ###### SAVE OLD PARAMETERS
@@ -54,40 +56,31 @@ for t in range(time_steps):
         t_G_old = temperature_gas[i]
 
         ###### COMPUTE GRADIENTS AND LAPLACIAN
-        # print('t: ', t)
-        # print('i: ', i)
-        # print('moisture_gas[i]: ', moisture_gas[i])
-        # print('moisture_gas[i+1]: ', moisture_gas[i+1])
-        # moisture_gradient_gas[i] = compute_gradient(moisture_gas, i, space_step)
-        # print('moisture_gradient_gas i: ', moisture_gradient_gas[i])
-        #print('moisture_gradient_gas: ', moisture_gradient_gas)
+        # moisture_gradient_gas[i] = compute_gradient(moisture_gas, i, space_step) #TODO: here or after updating? I think here.. 
         
         ###### UPDATE MOISTURE PARTICLE
         moisture_particle[i], moisture_gas[i+1], moisture_difference_y_absorption[i]= compute_moisture_particle(
             m_p_old, alpha_parameter, N, relative_humidity[i], time_step, constant[i],  m_G_old, particle_density, porosity_powder, gas_density)
-        moisture_gradient_gas[i] = compute_gradient(moisture_gas, i, space_step)
-        #print('moisture_gradient_gas i: ', moisture_gradient_gas[i])
-
 
         ###### UPDATE TEMP PARTICLE
-        temperature_particle[i] = compute_temperature_particle(
-            t_p_old, constant[i], time_step, conductivity_particle, laplacian, particle_density, alpha_parameter, 
-            m_p_old, relative_humidity[i], N, heat_of_vaporization, heat_transfer_coefficient_initial, 
-            specific_surface_area, t_G_old, particle_heat_capacity, 1)
+        # temperature_particle[i] = compute_temperature_particle(
+        #     t_p_old, constant[i], time_step, conductivity_particle, laplacian, particle_density, alpha_parameter, 
+        #     m_p_old, relative_humidity[i], N, heat_of_vaporization, heat_transfer_coefficient_initial, 
+        #     specific_surface_area, t_G_old, particle_heat_capacity, 1)
         
         ###### UPDATE MOISTURE GAS
-        moisture_gas_2[i] = (particle_density*porosity_powder*moisture_particle[i])/(gas_density*(1-porosity_powder))
-            # compute_moisture_gas(
-            # m_p_old, m_G_old, alpha_parameter, N, relative_humidity[i], time_step, constant[i], superficial_velocity, 
-            # moisture_diffusivity, gradient_moisture, laplacian, gas_density, particle_density, porosity_powder, 1)
-        #print('moisture Gas computed: ', moisture_gas[i])
+        # moisture_gas_2[i] = compute_moisture_gas(
+        #     m_p_old, m_G_old, alpha_parameter, N, relative_humidity[i], time_step, constant[i], superficial_velocity, 
+        #     moisture_diffusivity, moisture_gradient_gas[i], laplacian, gas_density, particle_density, porosity_powder, 1)
+        # #(particle_density*porosity_powder*moisture_particle[i])/(gas_density*(1-porosity_powder))
+        # print('Y_G 1: ', moisture_gas[i], 'Y_G 2:', moisture_gas_2[i])
         
         ###### UPDATE TEMP GAS
-        temperature_gas[i] = compute_temperature_gas(
-            t_p_old, constant[i], time_step, conductivity_gas, laplacian, gas_density, alpha_parameter, m_G_old, N, 
-            moisture_vapor_heat_capacity, relative_humidity[i], heat_transfer_coefficient_initial, 
-            specific_surface_area, t_G_old, gas_heat_capacity, superficial_velocity, temp_gradient_initial, porosity_powder, 
-            particle_density, 1)
+        # temperature_gas[i] = compute_temperature_gas(
+        #     t_p_old, constant[i], time_step, conductivity_gas, laplacian, gas_density, alpha_parameter, m_G_old, N, 
+        #     moisture_vapor_heat_capacity, relative_humidity[i], heat_transfer_coefficient_initial, 
+        #     specific_surface_area, t_G_old, gas_heat_capacity, superficial_velocity, temp_gradient_initial, porosity_powder, 
+        #     particle_density, 1)
         
         ###### UPDATE PARAMETERS 
         #moisture_density[i]=moisture_density[i] #for now since we dont know how the vapor density develops with temp
@@ -98,7 +91,7 @@ for t in range(time_steps):
         partial_pressure_moisture[i]=compute_partial_pressure_moisture(
             molar_concentration_moisture[i], R_gas_constant, temperature_gas[i])  
 
-        relative_humidity[i]=partial_pressure_moisture[i]/pressure_saturated[i]
+        relative_humidity[i]=moisture_gas[i]/max_water_content
 
         k_GP[i] = compute_mass_transfer_coefficient(
             moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, 
@@ -109,8 +102,8 @@ for t in range(time_steps):
         if i % 500 == 1:
         #     print('i: ', i)
         #     print('temp particle: ', temperature_particle)
-            print('moisture particle: ', moisture_particle[0])
-            print('moisture gas: ', moisture_gas[0])
+            print('moisture particle: ', moisture_particle[i])
+            print('moisture gas: ', moisture_gas[i])
 
         # print('t: ', t)
         # print('moisture-gas gradient', (moisture_gas[i]-m_G_old)/space_step)
@@ -119,7 +112,7 @@ for t in range(time_steps):
 # print('Change in temp gas:\n', (temperature_gas - temp_initial)[0:5])
 
 print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0:5])
-print('Change in moisture gas:\n', (moisture_gas - relative_humidity_gas_initial)[0:5])
+print('Change in moisture gas:\n', (moisture_gas - moisture_gas_initial)[0:5])
 
 # def compute_RH(superficial_velocity , moisture_diffusivity, gas_density, particle_density, porosity_powder, k_GP, specific_surface_area, pressure_saturated, pressure_ambient, alpha_parameter, N, moisture_particle_i, current_RH_i, measure_points, space_step, time_setp, constant_initial): #current_RH is moisture gas vector TODO: later parameters to compute constant instead of constant initial
 #     RH = np.zeros(measure_points)
