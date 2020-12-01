@@ -20,6 +20,8 @@ column_diameter = 0.1                                                           
 cross_sectional_area = np.pi * (column_diameter/2)**2
 volume_total = cross_sectional_area * bed_length
 
+max_water_content = 0.04                                                    # TODO: for simplification considered as a constant
+
 molar_concentration_moisture = moisture_density / molar_mass_moisture           # c at room temperature , moles/m3
 
 specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # m2/kg, SSA
@@ -54,6 +56,7 @@ partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidi
 molar_concentration_moisture_initial = partial_pressure_moisture_initial/(R_gas_constant * temp_initial)
 
 moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
+moisture_gas_initial = relative_humidity_gas_initial*max_water_content
 
 k_GP_initial = compute_mass_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
