@@ -5,7 +5,7 @@ import math
 
 # constant = k_GP * surface_area * pressure/pressure
 ###################################### MAIN EQUATIONS (1-4) ############################################################
-def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt, constant, x, verbose = False):
+def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt, constant, x, verbose=False):
     change_moisture_x = constant * (
                 relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))  # dX/dt
     if x == 0 and verbose:
@@ -65,18 +65,18 @@ def compute_temperature_particle(
 def compute_temperature_gas(
         temp_particle, constant, dt, conductivity_gas, laplacian, density_gas, alpha, moisture, N, heat_capacity_vapor,
         relative_humidity, heat_transfer_coefficient, specific_surface, temp_gas, heat_capacity_wet_gas, velocity,
-        temp_gradient, porosity, density_particle, x):
+        temp_gradient, porosity, density_particle, x, verbose=False):
     conduction = conductivity_gas * (1 - porosity) * laplacian
     heat_of_sorption = density_particle * porosity * constant * \
                        (relative_humidity - compute_equilibrium_moisture(alpha, moisture, N)) * heat_capacity_vapor * \
                        (temp_gas - temp_particle)
     heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
                     (temp_gas - temp_particle)
-    # if x == 0:
-    #     print('RH for gas temp: ', relative_humidity)
-    #     print('\nTemp gas: ', temp_gas)
-    #     print('Heat transfer gas: ', heat_transfer)
-    #     print('Temp diff: ', temp_gas - temp_particle)
+    if x == 0 and verbose:
+        print('RH for gas temp: ', relative_humidity)
+        print('\nTemp gas: ', temp_gas)
+        print('Heat transfer gas: ', heat_transfer)
+        print('Temp diff: ', temp_gas - temp_particle)
     # print('h_GP: ', heat_transfer_coefficient)
 
     # change_temperature = (conduction + heat_of_sorption + heat_transfer) / (density_gas * (1 - porosity) * heat_capacity_wet_gas) - \
@@ -102,7 +102,7 @@ def compute_velocity(volumetric_flow_rate_liters_per_minute, length, diameter, v
     fraction_gas = 1 - volume_fraction_powder
     # volume_gas_in_tube = area_column * length * fraction_gas
     velocity = volumetric_flow_rate / (area_column * fraction_gas)  # only area with gas, not powder
-    return velocity  # TODO: implement again
+    return velocity
 
 
 def spec_surface_area(particle_diameter, particle_density):  # CORRECT :)
@@ -112,8 +112,10 @@ def spec_surface_area(particle_diameter, particle_density):  # CORRECT :)
     return SSA
 
 
-def compute_initial_moisture_particle(alpha, N, gas_humidity):  # TODO: changed from relative_humidity to gas. OK?
-    moisture_particle = (-np.log(-(gas_humidity - 1)) / alpha) ** (1 / N)
+def compute_initial_moisture_particle(alpha, N, relative_humidity):
+    # moisture_particle = (-np.log(-(relative_humidity - 1)) / alpha) ** (1 / N)
+    # print('MP:',moisture_particle)
+    moisture_particle = relative_humidity/alpha
     return moisture_particle
 
 
@@ -131,7 +133,7 @@ def compute_heat_transfer_coefficient(
 
 ######################################### RECURRENT ####################################################################
 def compute_equilibrium_moisture(alpha, moisture_particle, N):
-    if moisture_particle < 1/alpha:                             # TODO: added 1/alpha, was only alpha before
+    if moisture_particle < 1/alpha:
         f_of_x = alpha * moisture_particle
     else:
         f_of_x = 1 - np.exp(-alpha * moisture_particle ** N)
