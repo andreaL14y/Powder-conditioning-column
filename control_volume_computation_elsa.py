@@ -3,11 +3,11 @@ import matplotlib.pyplot as plt
 from define_functions import*
 from test_main import*
 
-number_of_time_steps = 1000
+number_of_time_steps = 100
 
 number_of_divisions = 100000
 d_length = bed_length/number_of_divisions           # 0.2 mm w 1000 divisions
-dt = d_length / superficial_velocity
+dt = d_length / gas_velocity
 print('time step: ', dt)
 print('Length per step: ', d_length)
 print('Gas velocity: ', gas_velocity)       # 5 mm per s
@@ -31,7 +31,9 @@ temp_particle = np.zeros((1, number_of_divisions)) + temp_initial
 temp_gas = np.zeros((1, number_of_divisions)) + temp_initial
 
 gradient_moisture = gradient_moisture_initial
+gradient_temp = gradient_moisture_initial
 laplacian_moisture = laplacian_initial
+laplacian_temp = laplacian_initial
 
 print('Pressure sat initial: ', pressure_saturated_initial)
 print('Moisture particle initial at x = 0: ', moisture_particle[0,0])
@@ -62,19 +64,25 @@ for t in range(number_of_time_steps):
             #     print('Moisture gas at x = 1: ', moisture_gas[y, x + 1])
 
             # temp_particle[y, x] = compute_temperature_particle(
-            #     temp_particle_current, constant[x], dt, conductivity_particle, laplacian, particle_density, alpha_parameter,
+            #     temp_particle_current, constant[x], dt, conductivity_particle, laplacian_temp, particle_density, alpha_parameter,
             #     moisture_particle_current, relative_humidity[x], N, heat_of_vaporization, heat_transfer_coefficient,
-            #     specific_surface_area, temp_gas_current, particle_heat_capacity, x)
+            #     specific_surface_area, temp_gas_current, particle_heat_capacity, x, verbose=False)
             #
-            # temp_gas[y, x] = compute_temperature_gas(
-            #     temp_particle_current, constant[x], dt, conductivity_gas, laplacian, gas_density, alpha_parameter,
+            # temp_gas[y, x+1] = compute_temperature_gas(
+            #     temp_particle_current, constant[x], dt, conductivity_gas, laplacian_temp, gas_density, alpha_parameter,
             #     moisture_particle_current, N, moisture_vapor_heat_capacity, relative_humidity[x], heat_transfer_coefficient,
-            #     specific_surface_area, temp_gas_current, gas_heat_capacity, gas_velocity, temp_gradient, porosity_powder,
-            #     particle_density, x)
+            #     specific_surface_area, temp_gas_current, gas_heat_capacity, gas_velocity, gradient_temp, porosity_powder,
+            #     particle_density, x, verbose=False)
 
+            # if x == 9:
+            #     # print('\nx: ', x)
+            #     print('Temp gas is: ', temp_gas[y, x])
+            #     print('Temp particle is: ', temp_particle[y, x])
+            #     print('')
             ############################ UPDATE PARAMETERS #############################################################
             # Use temperature to find saturated pressure
             pressure_saturated[x] = compute_p_saturated(A, B, temp_gas[y, x], C)
+            # print(pressure_saturated[x])
 
             # Use moisture gas and p_sat to find RH
             relative_humidity[x] = compute_relative_humidity_from_Y(
@@ -104,12 +112,13 @@ for t in range(number_of_time_steps):
 
 print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[0, 0:5])
 print('Change in moisture gas:\n', (moisture_gas - moisture_gas_initial_in)[0, 0:5])
-print('Moisture gas:', (moisture_gas)[0, 0:5])
+print('Moisture particle:', (moisture_particle)[0, 0:10])
+print('Moisture gas:', (moisture_gas)[0, 0:10])
 
 # print(relative_humidity_gas_initial - moisture_gas)
 # print(temp_particle - temp_initial)
-# print(temp_gas[0, 0:5])
+# print('Temp gas is: ', temp_gas)
 # print(relative_humidity)
 
-plt.plot(np.arange(number_of_time_steps), plot_value)
-plt.show()
+# plt.plot(np.arange(number_of_time_steps), plot_value)
+# plt.show()
