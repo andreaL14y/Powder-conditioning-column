@@ -18,7 +18,6 @@ bed_length = 0.2                                                                
 column_diameter = 0.1                                                           # m
 cross_sectional_area = np.pi * (column_diameter/2)**2
 volume_total = cross_sectional_area * bed_length
-max_water_content = 0.04                                                    # TODO: for simplification considered as a constant
 
 specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # m2/kg, SSA
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
