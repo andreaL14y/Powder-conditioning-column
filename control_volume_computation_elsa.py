@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from define_functions import*
 from test_main import*
 
-number_of_time_steps = 100
+number_of_time_steps = 15
 
 number_of_divisions = 100000
 d_length = bed_length/number_of_divisions           # 0.2 mm w 1000 divisions
@@ -37,6 +37,8 @@ laplacian_temp = laplacian_initial
 
 print('Pressure sat initial: ', pressure_saturated_initial)
 print('Moisture particle initial at x = 0: ', moisture_particle[0,0])
+# print('Moisture particle initial at x = 0: ', moisture_particle_initial)
+print('Moisture gas initial at x = 1: ', moisture_gas[0,1])
 print('Moisture gas initial at x = 0: ', moisture_gas[0,0], '\n\n')
 
 plot_value = np.zeros(number_of_time_steps)
@@ -52,27 +54,28 @@ for t in range(number_of_time_steps):
             moisture_gas_current = moisture_gas[y, x]
 
             moisture_particle[y, x] = compute_moisture_particle(
-                moisture_particle_current, alpha_parameter, N, relative_humidity[x], dt, constant[x], x)
+                moisture_particle_current, alpha_parameter, N, relative_humidity[x], dt, constant[x], x, verbose=False)
+
             moisture_gas[y, x + 1] = compute_moisture_gas(
                 moisture_particle_current, moisture_gas_current, alpha_parameter, N, relative_humidity[x], dt,
                 constant[x], gas_velocity,
                 moisture_diffusivity, gradient_moisture, laplacian_moisture, gas_density, particle_density,
-                porosity_powder, x)
+                porosity_powder, x, verbose=False)
 
             # if x == 0:
             #     print('Moisture particle at x = 0: ', moisture_particle[y, x])
             #     print('Moisture gas at x = 1: ', moisture_gas[y, x + 1])
 
-            # temp_particle[y, x] = compute_temperature_particle(
-            #     temp_particle_current, constant[x], dt, conductivity_particle, laplacian_temp, particle_density, alpha_parameter,
-            #     moisture_particle_current, relative_humidity[x], N, heat_of_vaporization, heat_transfer_coefficient,
-            #     specific_surface_area, temp_gas_current, particle_heat_capacity, x, verbose=False)
-            #
-            # temp_gas[y, x+1] = compute_temperature_gas(
-            #     temp_particle_current, constant[x], dt, conductivity_gas, laplacian_temp, gas_density, alpha_parameter,
-            #     moisture_particle_current, N, moisture_vapor_heat_capacity, relative_humidity[x], heat_transfer_coefficient,
-            #     specific_surface_area, temp_gas_current, gas_heat_capacity, gas_velocity, gradient_temp, porosity_powder,
-            #     particle_density, x, verbose=False)
+            temp_particle[y, x] = compute_temperature_particle(
+                temp_particle_current, constant[x], dt, conductivity_particle, laplacian_temp, particle_density, alpha_parameter,
+                moisture_particle_current, relative_humidity[x], N, heat_of_vaporization, heat_transfer_coefficient,
+                specific_surface_area, temp_gas_current, particle_heat_capacity, x, verbose=False)
+
+            temp_gas[y, x + 1] = compute_temperature_gas(
+                temp_particle_current, constant[x], dt, conductivity_gas, laplacian_temp, gas_density, alpha_parameter,
+                moisture_particle_current, N, moisture_vapor_heat_capacity, relative_humidity[x], heat_transfer_coefficient,
+                specific_surface_area, temp_gas_current, gas_heat_capacity, gas_velocity, gradient_temp, porosity_powder,
+                particle_density, x, verbose=True)
 
             # if x == 9:
             #     # print('\nx: ', x)
@@ -81,32 +84,34 @@ for t in range(number_of_time_steps):
             #     print('')
             ############################ UPDATE PARAMETERS #############################################################
             # Use temperature to find saturated pressure
-            pressure_saturated[x] = compute_p_saturated(A, B, temp_gas[y, x], C)
+            pressure_saturated[x + 1] = compute_p_saturated(A, B, temp_gas[y, x+1], C)
             # print(pressure_saturated[x])
 
             # Use moisture gas and p_sat to find RH
-            relative_humidity[x] = compute_relative_humidity_from_Y(
-                molar_mass_dry_air, molar_mass_moisture, pressure_ambient, moisture_gas[y, x], pressure_saturated[x])
+            relative_humidity[x + 1] = compute_relative_humidity_from_Y(
+                molar_mass_dry_air, molar_mass_moisture, pressure_ambient, moisture_gas[y, x+1], pressure_saturated[x+1])
 
             # Use RH, p_sat and T_gas to find c
-            molar_concentration_moisture[x] = compute_molar_concentration(relative_humidity[x], pressure_saturated[x],
-                                                                          R_gas_constant, temp_gas[y, x])
+            molar_concentration_moisture[x + 1] = compute_molar_concentration(relative_humidity[x+1], pressure_saturated[x+1],
+                                                                          R_gas_constant, temp_gas[y, x+1])
 
             # Use c and T_gas to find partial pressure
-            partial_pressure_moisture[x] = compute_partial_pressure_moisture(molar_concentration_moisture[x],
-                                                                             R_gas_constant, temp_gas[y, x])
+            partial_pressure_moisture[x+1] = compute_partial_pressure_moisture(molar_concentration_moisture[x+1],
+                                                                               R_gas_constant, temp_gas[y, x+1])
 
             if x == 0:
                 # print('RH computed: ', relative_humidity[x])
                 # print(' \n')
                 plot_value[t] = moisture_particle[y, x]
 
-            mass_transfer_coefficient[x] = compute_mass_transfer_coefficient(
+            mass_transfer_coefficient[x+1] = compute_mass_transfer_coefficient(
                 moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density,
-                flow_rate, particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture[x])[3]
+                flow_rate, particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture[x+1])[3]
 
-            constant[x] = mass_transfer_coefficient[x] * specific_surface_area * pressure_saturated[x]/pressure_ambient  # just some simplification
-
+            constant[x+1] = mass_transfer_coefficient[x+1] * specific_surface_area * pressure_saturated[x+1]/pressure_ambient
+            # if x==9:
+            #     print('k_GP next: ', mass_transfer_coefficient[x+1])
+            #     print('p_sat next: ', pressure_saturated[x+1])
 # print('Change in temp particles:\n', (temp_particle - temp_initial)[0, 0:5])
 # print('Change in temp gas:\n', (temp_gas - temp_initial)[0, 0:5])
 

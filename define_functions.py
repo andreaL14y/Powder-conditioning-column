@@ -8,9 +8,11 @@ import math
 def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt, constant, x, verbose=False):
     change_moisture_x = constant * (
                 relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))  # dX/dt
-    if x == 0 and verbose:
+    if x == 9 and verbose:
         print('Moisture absorption particles: ', change_moisture_x * 1500 * 0.6)
-        # print('Constant: ', constant)
+        print('Constant: ', constant)
+        print('RH: ', relative_humidity)
+        print('')
     moisture_difference_x = change_moisture_x * dt  # dX
     moisture_particle_current = moisture_particle + moisture_difference_x
     return moisture_particle_current
@@ -22,11 +24,11 @@ def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_hum
     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
     change_moisture_absorption = - constant * density_particle * porosity * \
                                  (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
-    if x == 0 and verbose:
+    if x == 9 and verbose:
         # print('\nMoisture diffusion: ', change_moisture_diffusion)
         print('\nMoisture sorption gas: ', change_moisture_absorption)
-        # print('Constant: ', constant)
-        # print('RH: ', relative_humidity)
+        print('Constant: ', constant)
+        print('RH: ', relative_humidity)
         # print('u * nablaY: ', velocity * gradient_moisture)
         # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
         # print('Moisture particle in eq. fn: ', moisture_particle)
@@ -72,9 +74,9 @@ def compute_temperature_gas(
                        (temp_gas - temp_particle)
     heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
                     (temp_gas - temp_particle)
-    if x == 0 and verbose:
-        print('RH for gas temp: ', relative_humidity)
-        print('\nTemp gas: ', temp_gas)
+    if x == 8 and verbose:
+        print('\nRH for gas temp: ', relative_humidity)
+        print('Temp gas: ', temp_gas)
         print('Heat transfer gas: ', heat_transfer)
         print('Temp diff: ', temp_gas - temp_particle)
     # print('h_GP: ', heat_transfer_coefficient)

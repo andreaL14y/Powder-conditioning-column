@@ -42,7 +42,7 @@ C = 233.426
 ################################## INITIAL CONDITIONS ##################################################################
 temp_initial = 293.15                       # K, room temperature 20 degrees
 relative_humidity_bed_initial = 0.2         # starting condition
-relative_humidity_gas_initial = 0.5         # humidity of flowing gas
+relative_humidity_gas_initial = 0.9         # humidity of flowing gas
 pressure_ambient = 101325                   # atmospheric pressure, Pa
 boiling_temp = 273.15 + 100                 # for water
 
@@ -57,7 +57,7 @@ moisture_gas_initial_bed = compute_Y_from_RH(molar_mass_dry_air, molar_mass_mois
 moisture_gas_initial_in = compute_Y_from_RH(molar_mass_dry_air, molar_mass_moisture, pressure_ambient,
                                          relative_humidity_gas_initial, pressure_saturated_initial)
 
-moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, moisture_gas_initial_bed)
+moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
 
 k_GP_initial = compute_mass_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
@@ -76,7 +76,12 @@ gradient_moisture_initial = 0
 laplacian_moisture_initial = 0
 
 ########################################### TESTING ####################################################################
-
+# alpha_test = 75
+# RH = 0.9
+# gas_m = compute_Y_from_RH(molar_mass_dry_air, molar_mass_moisture, pressure_ambient, 0.9, pressure_saturated_initial)
+# x_sat = compute_initial_moisture_particle(alpha_test, 1, RH)
+# print(x_sat)
+# print(1/alpha_test)
 
 ########################################### UNUSED #####################################################################
 # moisture_density = 4.85 * 10**(-3)                                              # water vapor density at room temp
