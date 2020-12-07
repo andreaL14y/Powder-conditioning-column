@@ -30,32 +30,91 @@ partial_pressure_moisture = np.zeros(number_measure_points)+partial_pressure_moi
 constant = np.zeros(number_measure_points)+constant_initial #dep. on pressure saturated, k_GP
 k_GP = np.zeros(number_measure_points)+k_GP_initial #dep. on molar_concentration_moisture
 
+f_X = np.zeros(number_measure_points)
+
 
 ################ SYSTEM OF LIN EQ FOR du/dt=a*Laplacian*u-b*u+r ################################
-################ Temperature Particle                           ################################
-M=np.zeros((number_measure_points, number_measure_points))
-r=np.zeros(number_measure_points)
-for t in range(time_steps):
-    #at_most_bed_length = min(number_measure_points, t+1)
-    temperature_particle_current = temperature_particle
-    a =  conductivity_particle/(particle_density*particle_heat_capacity)
-    b = -heat_transfer_coefficient_initial*specific_surface_area*1/particle_heat_capacity
-    for i in range(number_measure_points):
-        r[i] = constant[i]*(relative_humidity[i]-compute_equilibrium_moisture(alpha_parameter, moisture_particle[i],N)) \
-            *heat_of_vaporization/particle_heat_capacity+heat_transfer_coefficient_initial*specific_surface_area \
-                *temperature_gas[i]/particle_heat_capacity
-        if i==0:
-            M[i,i]=1/time_step+2*a/(space_step**2)-b
-            M[i,i+1]=-a/(space_step**2)
-        elif i==(number_measure_points-1):
-            M[i,i-1]=-a/(space_step**2)
-            M[i,i]=1/time_step+2*a/(space_step**2)-b
-        else: 
-            M[i,i-1]=-a/(space_step**2)
-            M[i,i]=1/time_step+2*a/(space_step**2)-b
-            M[i,i+1]=-a/(space_step**2)
+################ Moisture Particle                              ################################
+M_mp = np.zeros((number_measure_points, number_measure_points))
+rhs_mp = np.zeros(number_measure_points)
+b_mp = np.zeros(number_measure_points)
+r_mp = np.zeros(number_measure_points)
 
-    ############ UPDATE PARAMETERS 
+################ Moisture Gas                                   ################################
+M_mg = np.zeros((number_measure_points, number_measure_points))
+rhs_mg = np.zeros(number_measure_points)
+a_mg = moisture_diffusivity
+c_mg = gas_velocity #TODO: is this the right velocity?
+r_mg_old = np.zeros(number_measure_points) #TODO really necessary?
+r_mg_new = np.zeros(number_measure_points)
+
+################ Temperature Particle                           ################################
+K_tp = np.zeros((number_measure_points, number_measure_points))
+rhs_tp = np.zeros(number_measure_points)
+b_tp = np.zeros(number_measure_points)
+r_tp = np.zeros(number_measure_points)
+
+################ Temperature Gas                                ################################
+K_tg = np.zeros((number_measure_points, number_measure_points))
+rhs_tg = np.zeros(number_measure_points)
+b_tg = np.zeros(number_measure_points)
+r_tg = np.zeros(number_measure_points)
+
+for t in range(time_steps):
+    at_most_bed_length = min(number_measure_points, t+1)
+    ##### Saving current values
+    moisture_particle_current = moisture_particle
+    moisture_gas_current = moisture_gas
+    temperature_particle_current = temperature_particle
+    temperature_gas_current = temperature_gas
+
+
+    for i in range(at_most_bed_length):
+        ##### Moisture particle 
+        f_X [i] = compute_equilibrium_moisture(alpha_parameter, moisture_particle_current[i], N)
+
+        b_mp[i] = -1*k_GP[i]*specific_surface_area*pressure_saturated[i]/pressure_ambient
+        r_mp[i] = k_GP[i]*specific_surface_area*pressure_saturated[i]*relative_humidity[i]/pressure_ambient
+        if i==0:
+            M_mp[i,i]=1 #TODO: initial cond
+            rhs_mp[i] = time_step*(b_mp[i]/2*moisture_particle_current[i])+time_step*(r_mp[i+1]+r_mp[i])/2 #TODO: BC? WHAT IS r_MP[i], r_mp[i+1], r_mp[i-1]?
+        elif i==(number_measure_points-1):
+            M_mp[i,i]=1 #TODO BC
+            rhs_mp[i] = time_step*b_mp[i]/2*moisture_particle_current[i]+time_step*(r_mp[i]) #TODO
+        else: 
+            M_mp[i,i]=1-time_step*b_mp[i]/2
+            rhs_mp[i] = time_step*b_mp[i]/2*moisture_particle_current[i]+time_step*(r_mp[i]+r_mp[i+1])/2
+
+        moisture_particle[:i]=np.linalg.solve(M_mp[:i,:i], rhs_mp[:i])
+
+        ##### Moisture Gas
+        r_mg_old[i] = (-k_GP[i]*specific_surface_area*pressure_saturated[i]*particle_density* \
+            porosity_powder/(pressure_ambient*gas_density*(1-porosity_powder)))*(relative_humidity[i]- \
+                compute_equilibrium_moisture(alpha_parameter, moisture_particle_current[i], N))
+
+        r_mg_new[i] = (-k_GP[i]*specific_surface_area*pressure_saturated[i]*particle_density* \
+            porosity_powder/(pressure_ambient*gas_density*(1-porosity_powder)))*(relative_humidity[i]- \
+                compute_equilibrium_moisture(alpha_parameter, moisture_particle[i], N))
+
+        if i==0:
+            M_mg[i,i] = time_step*a_mg/space_step**2 +1 #TODO: BC
+            M_mg[i,i+1]= -time_step/2*(a_mg/space_step**2-c_mg/(2*space_step)) #TODO BC
+        elif i==(number_measure_points-1):
+            M_mg[i,i-1] = -time_step/2*(a_mg/space_step**2+c_mg/(2*space_step)) #TODO BC
+            M_mg[i,i]= time_step*a_mg/space_step**2 +1 #TODO BC
+        else: 
+            M_mg[i,i-1] = -time_step/2*(a_mg/space_step**2+c_mg/(2*space_step))
+            M_mg[i,i]= time_step*a_mg/space_step**2 +1
+            M_mg[i,i+1]= -time_step/2*(a_mg/space_step**2-c_mg/(2*space_step))
+            rhs_mg[i-1] = time_step/2*(a_mg/space_step**2+c_mg/(2*space_step))*moisture_gas_current[i-1]
+            rhs_mg[i] = -time_step*a_mg/space_step**2*moisture_gas_current[i]
+            rhs_mg[i+1] = time_step/2*(a_mg/space_step**2-c_mg/(2*space_step))*moisture_gas_current[i+1]
+
+        r_mg = time_step/2*(r_mg_old+r_mg_new)
+        moisture_gas[:i] = np.linalg.solve(M_mg[:i,:i], rhs_mg[:i]+r_mg[:i])
+
+        
+        ############ UPDATE PARAMETERS 
         pressure_saturated[i]=compute_p_saturated(A, B, temperature_gas[i], C)
         
         relative_humidity[i]=compute_relative_humidity_from_Y(molar_mass_dry_air, molar_mass_moisture, pressure_ambient, moisture_gas[i], pressure_saturated[i])
@@ -69,7 +128,5 @@ for t in range(time_steps):
             flow_rate, particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture[i])[3]
         
         constant[i]=k_GP[i] * specific_surface_area * pressure_saturated[i] / pressure_ambient
-    #print(M)
-    temperature_particle = np.linalg.solve(M, temperature_particle_current)+time_step*r
     # UPDATE PARAMETERS
-    print(temperature_particle[0])
+
