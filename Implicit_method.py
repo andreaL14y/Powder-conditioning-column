@@ -2,9 +2,10 @@ import numpy as np
 import math
 from define_functions import*
 from test_main import*
+from copy import deepcopy
 
 #from control_volume_computation_andrea import *
-time_steps = 100
+time_steps = 150
 number_measure_points = 100
 space_step = bed_length/number_measure_points
 time_step = space_step / superficial_velocity
@@ -33,13 +34,14 @@ k_GP = np.zeros(number_measure_points)+k_GP_initial #dep. on molar_concentration
 f_X = np.zeros(number_measure_points)
 
 
-################ SYSTEM OF LIN EQ FOR du/dt=a*Laplacian*u-b*u+r ################################
+################ SYSTEM OF LIN EQ FOR du/dt=a*u+r               ################################
 ################ Moisture Particle                              ################################
 M_mp = np.zeros((number_measure_points, number_measure_points))
 rhs_mp = np.zeros(number_measure_points)
 b_mp = np.zeros(number_measure_points)
 r_mp = np.zeros(number_measure_points)
 
+################ SYSTEM OF LIN EQ FOR du/dt=a*Laplacian*u-c*Gradient*u+r #######################
 ################ Moisture Gas                                   ################################
 M_mg = np.zeros((number_measure_points, number_measure_points))
 rhs_mg = np.zeros(number_measure_points)
@@ -48,31 +50,33 @@ c_mg = gas_velocity #TODO: is this the right velocity?
 r_mg_old = np.zeros(number_measure_points) #TODO really necessary?
 r_mg_new = np.zeros(number_measure_points)
 
+################ SYSTEM OF LIN EQ FOR du/dt=a*Laplacian*u-b*u+r ################################
 ################ Temperature Particle                           ################################
 K_tp = np.zeros((number_measure_points, number_measure_points))
 rhs_tp = np.zeros(number_measure_points)
-b_tp = np.zeros(number_measure_points)
+a_tp = conductivity_particle/(particle_density*particle_heat_capacity)
+b_tp = -heat_transfer_coefficient_initial*specific_surface_area*1/particle_heat_capacity
 r_tp = np.zeros(number_measure_points)
+r_tp_helper = np.zeros(number_measure_points)
 
 ################ Temperature Gas                                ################################
 K_tg = np.zeros((number_measure_points, number_measure_points))
 rhs_tg = np.zeros(number_measure_points)
+a_tg = conductivity_gas/(gas_density*gas_heat_capacity)
 b_tg = np.zeros(number_measure_points)
 r_tg = np.zeros(number_measure_points)
+r_tg_helper = np.zeros(number_measure_points)
 
 for t in range(time_steps):
     at_most_bed_length = min(number_measure_points, t+1)
     ##### Saving current values
-    moisture_particle_current = moisture_particle
-    moisture_gas_current = moisture_gas
-    temperature_particle_current = temperature_particle
-    temperature_gas_current = temperature_gas
-
+    moisture_particle_current = deepcopy(moisture_particle)
+    moisture_gas_current = deepcopy(moisture_gas)
+    temperature_particle_current = deepcopy(temperature_particle)
+    temperature_gas_current = deepcopy(temperature_gas)
 
     for i in range(at_most_bed_length):
         ##### Moisture particle 
-        f_X [i] = compute_equilibrium_moisture(alpha_parameter, moisture_particle_current[i], N)
-
         b_mp[i] = -1*k_GP[i]*specific_surface_area*pressure_saturated[i]/pressure_ambient
         r_mp[i] = k_GP[i]*specific_surface_area*pressure_saturated[i]*relative_humidity[i]/pressure_ambient
         if i==0:
@@ -113,7 +117,58 @@ for t in range(time_steps):
         r_mg = time_step/2*(r_mg_old+r_mg_new)
         moisture_gas[:i] = np.linalg.solve(M_mg[:i,:i], rhs_mg[:i]+r_mg[:i])
 
+        ##### Temperature particle
+        r_tp_helper[i]=constant[i]*(relative_humidity[i]-compute_equilibrium_moisture(alpha_parameter, moisture_particle[i], N))*\
+            heat_of_vaporization*1/particle_heat_capacity+heat_transfer_coefficient_initial/particle_heat_capacity*temperature_gas[i] #TODO is it moisture particle current here? or the new X_P? same question for T_G. IF it is the "old" values I could write all in one if loop
         
+        if i==0:
+            K_tp[i,i]= 1-time_step-b_tp #TODO BC
+            K_tp[i,i+1]= - time_step*a_tp/(2*space_step**2)  #TODO BC
+            r_tp[i] = r_tp_helper[i] #TODO
+        elif i==(number_measure_points-1):
+            K_tp[i,i-1] = - time_step*a_tp/(2*space_step**2) #TODO BC
+            K_tp[i,i]= 1-time_step-b_tp  #TODO BC
+            r_tp[i]= time_step/2*(r_tp_helper[i-1]+r_tp_helper[i])
+        else: 
+            K_tp[i,i-1] = - time_step*a_tp/(2*space_step**2)
+            K_tp[i,i]= 1-time_step-b_tp
+            K_tp[i,i+1]= - time_step*a_tp/(2*space_step**2)
+            rhs_tp[i-1] = time_step*a_tp/(2*space_step**2)*temperature_particle_current[i-1]
+            rhs_tp[i] = (time_step+b_tp-1)*temperature_particle_current[i]
+            rhs_tp[i+1] = time_step*a_tp/(2*space_step**2)*temperature_particle_current[i+1]
+            r_tp[i]= time_step/2*(r_tp_helper[i-1]+r_tp_helper[i])
+
+        temperature_particle[:i] = np.linalg.solve(K_tp[:i,:i], rhs_tp[:i]+r_tp[:i])
+        
+        ##### Temperature gas
+        r_tg_helper[i] = (particle_density*porosity_powder*temperature_particle[i]/(gas_density*(1-porosity_powder*gas_heat_capacity)))*\
+            (-constant[i]*(relative_humidity[i]-compute_equilibrium_moisture(alpha_parameter, moisture_particle[i], N))*\
+                moisture_vapor_heat_capacity+heat_transfer_coefficient_initial*specific_surface_area) #TODO is it moisture particle current here? or the new X_P? same question for T_G. IF it is the "old" values I could write all in one if loop
+        
+        b_tg[i] = particle_density*porosity_powder/(gas_density*(1-porosity_powder)*gas_heat_capacity)*(constant[i]*\
+            (relative_humidity[i]-compute_equilibrium_moisture(alpha_parameter, moisture_particle[i], N))*\
+                moisture_vapor_heat_capacity-heat_transfer_coefficient_initial*specific_surface_area)
+        
+        if i==0:
+            K_tg[i,i]= 1-time_step-b_tg[i] #TODO BC
+            K_tg[i,i+1]= - time_step*a_tg/(2*space_step**2)  #TODO BC
+            r_tg[i] = r_tg_helper[i] #TODO
+        elif i==(number_measure_points-1):
+            K_tg[i,i-1] = - time_step*a_tg/(2*space_step**2) #TODO BC
+            K_tg[i,i]= 1-time_step-b_tg[i]  #TODO BC
+            r_tg[i]= time_step/2*(r_tg_helper[i-1]+r_tg_helper[i])
+        else: 
+            K_tg[i,i-1] = - time_step*a_tg/(2*space_step**2)
+            K_tg[i,i]= 1-time_step-b_tg[i]
+            K_tg[i,i+1]= - time_step*a_tg/(2*space_step**2)
+            rhs_tg[i-1] = time_step*a_tg/(2*space_step**2)*temperature_particle_current[i-1]
+            rhs_tg[i] = (time_step+b_tg[i]-1)*temperature_particle_current[i]
+            rhs_tg[i+1] = time_step*a_tg/(2*space_step**2)*temperature_particle_current[i+1]
+            r_tg[i]= time_step/2*(r_tg_helper[i-1]+r_tg_helper[i])
+
+        temperature_gas[:i] = np.linalg.solve(K_tg[:i,:i], rhs_tg[:i]+r_tg[:i])
+
+
         ############ UPDATE PARAMETERS 
         pressure_saturated[i]=compute_p_saturated(A, B, temperature_gas[i], C)
         
@@ -128,5 +183,9 @@ for t in range(time_steps):
             flow_rate, particle_diameter, molar_mass_moisture, superficial_velocity, molar_concentration_moisture[i])[3]
         
         constant[i]=k_GP[i] * specific_surface_area * pressure_saturated[i] / pressure_ambient
-    # UPDATE PARAMETERS
+
+print('moisture gas', moisture_gas)
+print('moisture particle', moisture_particle)
+print('temperature particle', temperature_particle)
+print('temperature gas', temperature_gas)
 
