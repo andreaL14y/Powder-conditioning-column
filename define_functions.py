@@ -9,36 +9,38 @@ def compute_moisture_particle(moisture_particle, alpha, N, relative_humidity, dt
     change_moisture_x = constant * (
                 relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))  # dX/dt
     if x == 1 and verbose:
-        print('Moisture absorption particles: ', change_moisture_x * 1500 * 0.6)
-        print('Constant: ', constant)
-        print('RH: ', relative_humidity)
-        print('')
+        print('\nMoisture absorption particles: ', change_moisture_x * 1500 * 0.6)
+        # print('Constant: ', constant)
+        # print('RH: ', relative_humidity)
+        # print('')
     moisture_difference_x = change_moisture_x * dt  # dX
     moisture_particle_current = moisture_particle + moisture_difference_x
     return moisture_particle_current
 
 
 def compute_moisture_gas(moisture_particle, moisture_gas, alpha, N, relative_humidity, dt, constant, velocity,
-                         diffusivity,
-                         gradient_moisture, laplacian, density_gas, density_particle, porosity, x, verbose = False):
+                         diffusivity, gradient_moisture, laplacian, density_gas, density_particle, porosity, x,
+                         verbose = False):
+
     change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian
     change_moisture_absorption = - constant * density_particle * porosity * \
                                  (relative_humidity - compute_equilibrium_moisture(alpha, moisture_particle, N))
+
+    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
+                      velocity * gradient_moisture
+    moisture_gas_current = moisture_gas + change_moisture * dt
     if x == 1 and verbose:
-        # print('\nMoisture diffusion: ', change_moisture_diffusion)
-        print('\nMoisture sorption gas: ', change_moisture_absorption)
+        print('Moisture diffusion: ', change_moisture_diffusion)
+        print('Moisture laplacian: ', laplacian)
+        print('Gradient moisture: ', gradient_moisture)
+        print('Moisture sorption gas: ', change_moisture_absorption)
+        print('Moisture gas before: ', moisture_gas)
+        print('Moisture gas after: ', moisture_gas_current)
         print('Constant: ', constant)
         print('RH: ', relative_humidity)
         # print('u * nablaY: ', velocity * gradient_moisture)
         # print('Equilibrium: ', compute_equilibrium_moisture(alpha, moisture_particle, N))
         # print('Moisture particle in eq. fn: ', moisture_particle)
-
-    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
-                      velocity * gradient_moisture
-    moisture_gas_current = moisture_gas + change_moisture * dt
-    # if x == 0:
-    #     print('Moisture gas: ', moisture_gas_current)
-    # print('Moisture chchange_moisture)
     return moisture_gas_current
 
 
@@ -203,7 +205,8 @@ def compute_gradient(vector, index, space_step):  # Should work for temperature 
     if index > (length - 2):
         grad = 0
     else:
-        grad = (vector[index + 1] - vector[index]) / space_step
+        # grad = (vector[index + 1] - vector[index]) / space_step
+        grad = (vector[index] - vector[index-1]) / space_step     # TODO: changed to minus. Right or not?
     return grad
 
 
@@ -212,7 +215,7 @@ def compute_laplacian(vector, index, space_step):
     if index > (length - 2):
         laplacian = 0
     elif index == 0:
-        laplacian = 0
+        laplacian = 0 #(moisture_gas_initial_in - 2 * vector[index] + vector[index + 1]) / (space_step ** 2)
     else:
         laplacian = (vector[index - 1] - 2 * vector[index] + vector[index + 1]) / (space_step ** 2)
     return laplacian
