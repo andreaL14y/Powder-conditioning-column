@@ -12,6 +12,7 @@ def compute_moisture_particle_vector(moisture_particle_vector, alpha, N, relativ
     # print(change_moisture_x[time])
     moisture_difference_x = change_moisture_x * dt  # dX
     moisture_particle_current = moisture_particle_vector + moisture_difference_x
+    print('Change moisture particle: ', change_moisture_x)
     return moisture_particle_current
 
 
@@ -27,6 +28,7 @@ def compute_moisture_gas_vector(
     # change_moisture_absorption = 0
     change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
                       velocity * gradient_vector
+    print('Change moisture gas: ', change_moisture)
     moisture_gas_current = moisture_gas_vector + change_moisture * dt
 
     return moisture_gas_current
