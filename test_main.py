@@ -58,6 +58,7 @@ moisture_gas_initial_in = compute_Y_from_RH(molar_mass_dry_air, molar_mass_moist
                                          relative_humidity_gas_initial, pressure_saturated_initial)
 
 moisture_particle_initial = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_bed_initial)
+moisture_particle_saturated = compute_initial_moisture_particle(alpha_parameter, N, relative_humidity_gas_initial)
 
 k_GP_initial = compute_mass_transfer_coefficient(
     moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
