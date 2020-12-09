@@ -61,7 +61,6 @@ for t in range(time_steps-1):
 
     # for x in range(1, number_x+1):
     for x in range(1, space_steps):
-
         temp_particle_current = temp_particle[t, x]
         temp_gas_current = temp_gas[t, x]
         moisture_particle_current = moisture_particle[t, x]
