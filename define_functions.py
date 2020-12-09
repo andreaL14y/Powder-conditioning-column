@@ -206,7 +206,8 @@ def compute_gradient(vector, index, space_step):  # Should work for temperature 
         grad = 0
     else:
         # grad = (vector[index + 1] - vector[index]) / space_step
-        grad = (vector[index] - vector[index-1]) / space_step     # TODO: changed to minus. Right or not?
+        grad = (vector[index] - vector[index - 1]) / space_step
+        # grad = (vector[index] - vector[index-1]) / space_step     # TODO: changed to minus. Right or not?
     return grad
 
 
@@ -217,6 +218,7 @@ def compute_laplacian(vector, index, space_step):
     elif index == 0:
         laplacian = 0 #(moisture_gas_initial_in - 2 * vector[index] + vector[index + 1]) / (space_step ** 2)
     else:
+        # print('Vector: ', vector[index - 1], vector[index], vector[index + 1])
         laplacian = (vector[index - 1] - 2 * vector[index] + vector[index + 1]) / (space_step ** 2)
     return laplacian
 
