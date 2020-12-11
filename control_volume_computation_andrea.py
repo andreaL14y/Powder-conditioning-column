@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from define_functions import*
-from test_main import*
+from input_parameters import*
 laplacian=1
 
 # time_step=0.1

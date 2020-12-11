@@ -6,7 +6,7 @@ import matplotlib
 import numpy as np
 import math
 from define_functions import*
-from test_main import*
+from input_parameters import*
 from copy import deepcopy
 
 matplotlib.rc('font', size=18)
