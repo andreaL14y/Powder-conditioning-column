@@ -1,7 +1,7 @@
 import numpy as np
 import math
 from define_functions import*
-from test_main import*
+from input_parameters import*
 from copy import deepcopy
 
 #from control_volume_computation_andrea import *

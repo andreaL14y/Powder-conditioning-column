@@ -16,7 +16,7 @@ alpha_parameter = 25                                                            
 gas_density = 1
 particle_density = 1500
 particle_diameter = 0.00001                                                     # m
-heat_of_vaporization = 1000*1000                                                  # delta_H, J/kg
+heat_of_vaporization = 1000*1000                                                # delta_H, J/kg
 gas_viscosity = 10 ** -5                                                        # mu_G, kg/(m*s)
 moisture_diffusivity = 10 ** -5                                                 # D_G, m^2/s
 molar_mass_moisture = 18/1000                                                   # kg/mol for water vapor
@@ -32,12 +32,12 @@ conductivity_gas = 0.01                     # W/(m*K)
 boiling_temp = kelvin + 100                 # for water
 
 # Cylinder and flow specific
-bed_length = 0.2                                                                # m
-column_diameter = 0.1                                                           # m
-cross_sectional_area = np.pi * (column_diameter/2)**2
-volumetric_flow_rate_liters_per_minute = 1                                      # l/min
+bed_length = 0.2                                                                        # m
+column_diameter = 0.1                                                                   # m
+cross_sectional_area = np.pi * (column_diameter/2)**2                                   # m^2
+volumetric_flow_rate_liters_per_minute = 1                                              # l/min
 flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)  # m3/s
-superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                 # superficial velocity U in m/s
+superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                         # superficial velocity U in m/s
 gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute, bed_length, column_diameter, porosity_powder)
 
 temp_initial = kelvin + 20                  # K, room temperature 20 degrees
