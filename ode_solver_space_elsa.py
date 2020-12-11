@@ -3,7 +3,7 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from vectorized_define_functions import *
-from test_main import *
+from input_parameters import *
 
 def moisture(moisture_matrix, t, space_step, n_space_steps, alpha, N, diffusivity, density_gas, density_particle,
              porosity, velocity, heat_transfer_coefficient, heat_capacity_vapor, heat_capacity_wet_gas,
@@ -74,10 +74,10 @@ def moisture(moisture_matrix, t, space_step, n_space_steps, alpha, N, diffusivit
     return np.concatenate([change_m_gas, change_m_particle, change_temp_gas, change_temp_particle])
 
 
-space_steps = 6
+space_steps = 5
 length = np.linspace(0, bed_length, space_steps)
 space_step = bed_length / space_steps
-t = np.linspace(0, 500000, 500)
+t = np.linspace(0, 700000, 500)
 
 moisture_gas_initial_all = np.zeros(space_steps) + moisture_gas_initial_bed
 moisture_particle_initial_all = np.zeros(space_steps) + moisture_particle_initial
@@ -100,6 +100,8 @@ hours = seconds / 3600
 t /= 3600
 system[:, space_steps * 2:space_steps * 3] -= kelvin
 max_temp_gas = np.max(system[:, space_steps * 2:space_steps * 3])
+max_temp_gas_index = np.where(system == max_temp_gas )
+print(max_temp_gas_index, system[max_temp_gas_index])
 
 system[:, space_steps * 3:space_steps * 4] -= kelvin
 max_temp_particle = np.max(system[:, (space_steps * 3):(space_steps * 4)])
@@ -109,7 +111,7 @@ print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas))
 print('Max temperature in particles is: {:.4f} degrees Celcius'.format(max_temp_particle))
 
 fig, ax = plt.subplots(space_steps, 4)
-fig.suptitle(f'Moisture & temperature in sections ove time. Total time: {int(hours)} hours.', fontsize=14)
+fig.suptitle(f'Moisture & temperature in cylinder sections over time. Total time: {int(hours)} hours.', fontsize=14)
 ax[0, 0].set_title('Moisture Gas')
 ax[0, 1].set_title('Moisture Particle')
 ax[0, 2].set_title('Temp Gas')
@@ -132,34 +134,50 @@ for feature in range(4):
         current_color = temp_color
 
     for step in range(space_steps):
+        if feature == 0:
+            ax[step, feature].set_ylabel(f'Section {step+1}                      ', rotation=0, size='large')
         ax[step, feature].plot(t, system[:, counter], c=current_color)
 
         if feature == 0:
             patch = mpatches.Patch(color=current_color, label=f'Y {step}')
             ax[step, feature].set_ylim(moisture_gas_initial_bed - epsilon, moisture_gas_initial_in + epsilon)
             ax[step, feature].hlines(moisture_gas_initial_bed, 0, t[-1], colors=initial_color, linestyles=initial_line)
+            ax[step, feature].text(hours*4/5, moisture_gas_initial_bed+epsilon, ('{:.4f}'.format(moisture_gas_initial_bed)), ha='left', va='center')
+
             ax[step, feature].hlines(moisture_gas_initial_in, 0, t[-1], colors=saturated_color, linestyles=initial_line)
+            ax[step, feature].text(1, moisture_gas_initial_in - epsilon, ('{:.4f}'.format(moisture_gas_initial_in)), ha='left', va='center')
 
         elif feature == 1:
             patch = mpatches.Patch(color=current_color, label=f'X {step}')
             ax[step, feature].set_ylim(moisture_particle_initial - epsilon, moisture_particle_saturated + epsilon)
             ax[step, feature].hlines(moisture_particle_initial, 0, t[-1], colors=initial_color, linestyles=initial_line)
+            ax[step, feature].text(hours * 4 / 5, moisture_particle_initial + 2*epsilon,
+                                   ('{:.4f}'.format(moisture_particle_initial)), ha='left', va='center')
+
             ax[step, feature].hlines(moisture_particle_saturated, 0, t[-1], colors=saturated_color, linestyles=initial_line)
+            ax[step, feature].text(1, moisture_particle_saturated - 2*epsilon, ('{:.4f}'.format(moisture_particle_saturated)),
+                                   ha='left', va='center')
 
         elif feature == 2:
-            patch = mpatches.Patch(color=current_color, label=f'TG {step}')
+            patch = mpatches.Patch(color=current_color, label=f'{step}')
             ax[step, feature].set_ylim(temp_initial - (kelvin + epsilon), max_temp_gas + 1)
             ax[step, feature].hlines(temp_initial - kelvin, 0, t[-1], colors=initial_color, linestyles=initial_line)
             ax[step, feature].hlines(max_temp_gas, 0, t[-1], colors=saturated_color, linestyles=initial_line)
+            ax[step, feature].text(hours * 4 / 5, max_temp_gas - 0.7,
+                                   ('{:.2f}'.format(max_temp_gas)), ha='left', va='center')
         else:
-            patch = mpatches.Patch(color=current_color, label=f'TP {step}')
+            patch = mpatches.Patch(color=current_color, label=f'{step}')
             ax[step, feature].set_ylim(temp_initial - (kelvin + epsilon), max_temp_particle + 1)
             ax[step, feature].hlines(temp_initial - kelvin, 0, t[-1], colors=initial_color, linestyles=initial_line)
-            ax[step, feature].hlines(max_temp_particle, 0, t[-1], colors=saturated_color, linestyles=initial_line)
 
-        ax[step, feature].legend(handles=[patch], loc="upper left")
+            ax[step, feature].hlines(max_temp_particle, 0, t[-1], colors=saturated_color, linestyles=initial_line)
+            ax[step, feature].text(hours * 4 / 5, max_temp_particle - 0.7,
+                                   ('{:.2f}'.format(max_temp_particle)), ha='left', va='center')
+
+        # ax[step, feature].legend(handles=[patch], loc="lower center")
         ax[step, feature].grid()
         # ax[step, feature].xaxis.grid()
         counter += 1
-
+# fig.tight_layout()
+# plt.savefig('system_over_time.pdf')
 plt.show()

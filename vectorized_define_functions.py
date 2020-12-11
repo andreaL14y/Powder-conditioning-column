@@ -1,7 +1,7 @@
 # IMPORTS
 import numpy as np
 import math
-from test_main import*
+from input_parameters import*
 
 # constant = k_GP * surface_area * pressure/pressure
 ###################################### MAIN EQUATIONS (1-4) ############################################################
