@@ -3,7 +3,7 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from vectorized_define_functions import*
 from define_functions import*
-from test_main import*
+from input_parameters import*
 
 def tank(h,t):
     c1 = 0.13

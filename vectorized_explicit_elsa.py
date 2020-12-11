@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from define_functions import*
 from vectorized_define_functions import*
-from test_main import*
+from input_parameters import*
 
 space_steps = 5
 space_step = bed_length / space_steps
