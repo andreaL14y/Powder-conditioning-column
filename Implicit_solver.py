@@ -6,11 +6,7 @@ import matplotlib
 import numpy as np
 import math
 from define_functions import*
-<<<<<<< HEAD
 from define_parameters_OLD import*
-=======
-from input_parameters import*
->>>>>>> a72b7bc79778efcd360bc557c2c777309e138eb4
 from copy import deepcopy
 
 matplotlib.rc('font', size=18)
