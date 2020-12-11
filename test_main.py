@@ -2,50 +2,53 @@ import numpy as np
 from define_functions import*
 
 ########################################### PARAMETERS #################################################################
+# Constants
+R_gas_constant = 8.314                                                          # ideal gas constant, J/(K*mol)
+kelvin = 273.15                                                                 # Conversion to degrees
+A = 8.07131                                                                     # Antoine constant for water
+B = 1730.630                                                                    # Antoine constant for water
+C = 233.426                                                                     # Antoine constant for water
+
+# Material specific for gas and powder
 porosity_powder = 0.6
 N = 1                                                                           # Parameter, assume 1
 alpha_parameter = 25                                                            # parameter, 10 < alpha < 100
 gas_density = 1
 particle_density = 1500
-particle_diameter = 0.00001                                                      # m
-heat_of_vaporization = 1000                                                     # delta_H
-gas_viscosity = 10 ** -5                                                        # mu_G in kg/(m*s)
-moisture_diffusivity = 10 ** -5                                                 # D_G
-R_gas_constant = 8.314                                                          # J/(K*mol) ideal gas constant
+particle_diameter = 0.00001                                                     # m
+heat_of_vaporization = 1000*1000                                                  # delta_H, J/kg
+gas_viscosity = 10 ** -5                                                        # mu_G, kg/(m*s)
+moisture_diffusivity = 10 ** -5                                                 # D_G, m^2/s
 molar_mass_moisture = 18/1000                                                   # kg/mol for water vapor
 molar_mass_dry_air = 28.97/1000                                                 # kg/mol
+specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # m2/kg, SSA
+
+moisture_vapor_heat_capacity = 2000         # J/(kg*K), C_P_V, heat capacity gas water vapor)
+moisture_liquid_heat_capacity = 4000        # J/(kg*K) C?? Heat capacity liquid water
+particle_heat_capacity = 1000               # C_P_P AND C_P_WP
+gas_heat_capacity = 1000                    # C_P_WG
+conductivity_particle = 0.1                 # W/(m*K)
+conductivity_gas = 0.01                     # W/(m*K)
+boiling_temp = kelvin + 100                 # for water
+
+# Cylinder and flow specific
 bed_length = 0.2                                                                # m
 column_diameter = 0.1                                                           # m
 cross_sectional_area = np.pi * (column_diameter/2)**2
-volume_total = cross_sectional_area * bed_length
-
-specific_surface_area = spec_surface_area(particle_diameter, particle_density)  # m2/kg, SSA
 volumetric_flow_rate_liters_per_minute = 1                                      # l/min
 flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)  # m3/s
 superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                 # superficial velocity U in m/s
 gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute, bed_length, column_diameter, porosity_powder)
 
-# Heat capacities (C's) and conductivities (lambdas)
-moisture_vapor_heat_capacity = 2000         # J/(kg*K), C_P_V, heat capacity gas water vapor)
-moisture_liquid_heat_capacity = 4000        # J/(kg*K) C?? Heat capacity liquid water
-particle_heat_capacity = 1000               # C_P_P AND C_P_WP
-gas_heat_capacity = 1000                    # C_P_WG
-
-conductivity_particle = 0.1                 # W/(m*K)
-conductivity_gas = 0.01                     # W/(m*K)
-
-# Antoine constants for water
-A = 8.07131
-B = 1730.630
-C = 233.426
-
-################################## INITIAL CONDITIONS ##################################################################
-temp_initial = 293.15                       # K, room temperature 20 degrees
+temp_initial = kelvin + 20                  # K, room temperature 20 degrees
 relative_humidity_bed_initial = 0.2         # starting condition
 relative_humidity_gas_initial = 0.9         # humidity of flowing gas
 pressure_ambient = 101325                   # atmospheric pressure, Pa
-boiling_temp = 273.15 + 100                 # for water
 
+# Unused?
+volume_total = cross_sectional_area * bed_length
+
+################################## INITIAL CONDITIONS ##################################################################
 pressure_saturated_initial = compute_p_saturated(A, B, temp_initial, C)
 partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
 molar_concentration_moisture_initial = compute_molar_concentration(
