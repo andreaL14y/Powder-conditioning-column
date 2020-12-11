@@ -1,73 +1,55 @@
-# IMPORTS
-import numpy as np
-import math
 from input_parameters import*
-
-# constant = k_GP * surface_area * pressure/pressure
 ###################################### MAIN EQUATIONS (1-4) ############################################################
-def compute_moisture_particle_vector(moisture_particle_vector, alpha, N, relative_humidity_vector, dt, constant_vector,
-                                     verbose=False):
-    change_moisture_x = constant_vector * (
-                relative_humidity_vector - compute_equilibrium_moisture_vector(alpha, moisture_particle_vector, N))  # dX/dt
-    # print(change_moisture_x[time])
-    moisture_difference_x = change_moisture_x * dt  # dX
-    moisture_particle_current = moisture_particle_vector + moisture_difference_x
-    print('Change moisture particle: ', change_moisture_x)
-    return moisture_particle_current
+def conditioning_column(moisture_matrix, t, space_step, n_space_steps):
 
+    moisture_gas_vector = moisture_matrix[0:n_space_steps]
+    moisture_particle_vector = moisture_matrix[n_space_steps:n_space_steps * 2]
+    temp_gas_vector = moisture_matrix[n_space_steps * 2:n_space_steps * 3]
+    temp_particle_vector = moisture_matrix[n_space_steps * 3:n_space_steps * 4]
 
-def compute_moisture_gas_vector(
-        moisture_particle_vector, moisture_gas_vector, alpha, N, relative_humidity_vector, dt, constant_vector, velocity,
-                         diffusivity, gradient_vector, laplacian_vector, density_gas, density_particle, porosity,
-                         verbose = False):
+    ##################################### UPDATE PARAMETERS ############################################################
+    equilibrium_state = compute_equilibrium_moisture_vector(moisture_particle_vector)
+    pressure_saturated = compute_p_saturated_vector(temp_gas_vector)
+    relative_humidity = compute_relative_humidity_from_Y_vector(moisture_gas_vector, pressure_saturated)
+    molar_concentration_moisture = compute_molar_concentration_vector(
+        relative_humidity, pressure_saturated, temp_gas_vector)
 
-    change_moisture_diffusion = diffusivity * density_gas * (1 - porosity) * laplacian_vector
-    change_moisture_absorption = - constant_vector * density_particle * porosity * \
-                                 (relative_humidity_vector -
-                                  compute_equilibrium_moisture_vector(alpha, moisture_particle_vector, N))
-    # change_moisture_absorption = 0
-    change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
-                      velocity * gradient_vector
-    print('Change moisture gas: ', change_moisture)
-    moisture_gas_current = moisture_gas_vector + change_moisture * dt
+    mass_transfer_coefficient = compute_mass_transfer_coefficient_vector(molar_concentration_moisture)[3]
+    constant = mass_transfer_coefficient * specific_surface_area * pressure_saturated / pressure_ambient
 
-    return moisture_gas_current
+    laplacian_moisture_gas = compute_laplacian_vector(moisture_gas_vector, space_step, moisture_gas_initial_in)
+    gradient_moisture_gas = compute_gradient_vector(moisture_gas_vector, space_step, moisture_gas_initial_in)
+    laplacian_temp_gas = compute_laplacian_vector(temp_gas_vector, space_step, temp_initial)
+    gradient_temp_gas = compute_gradient_vector(temp_gas_vector, space_step, temp_initial)
+    laplacian_temp_particle = compute_laplacian_vector(temp_particle_vector, space_step, temp_initial)
 
+    ##################################### UPDATE MOISTURE ##############################################################
+    change_m_diffusion_gas = moisture_diffusivity * gas_density * (1 - porosity_powder) * laplacian_moisture_gas
+    change_m_absorption_gas = - constant * particle_density * porosity_powder * (relative_humidity - equilibrium_state)
 
-def compute_temperature_particle_vector(
-        temp_particle_vector, constant_vector, dt, conductivity, laplacian_vector, density, alpha, moisture_vector,
-        relative_humidity_vector, N, heat_of_vaporization, heat_transfer_coefficient, specific_surface, temp_gas_vector,
-        heat_capacity, verbose = False):
+    change_m_gas = (change_m_diffusion_gas + change_m_absorption_gas) / \
+                   (gas_density * (1 - porosity_powder)) - gas_velocity * gradient_moisture_gas
 
-    conduction = conductivity * laplacian_vector / density
-    heat_of_sorption = constant_vector * (
-            relative_humidity_vector - compute_equilibrium_moisture_vector(alpha, moisture_vector, N)) * heat_of_vaporization
-    heat_transfer = heat_transfer_coefficient * specific_surface * (temp_gas_vector - temp_particle_vector)
+    change_m_particle = constant * (relative_humidity - equilibrium_state)
 
-    change_temperature = (conduction + heat_of_sorption + heat_transfer) / heat_capacity
-    temp_particle_vector += change_temperature * dt
-
-    return temp_particle_vector
-
-def compute_temperature_gas_vector(
-        temp_particle_vector, constant_vector, dt, conductivity_gas, laplacian_vector, density_gas, alpha, moisture_vector, N, heat_capacity_vapor,
-        relative_humidity_vector, heat_transfer_coefficient, specific_surface, temp_gas_vector, heat_capacity_wet_gas, velocity,
-        temp_gradient_vector, porosity, density_particle, verbose=False):
-
-    conduction = conductivity_gas * (1 - porosity) * laplacian_vector
-
-    heat_of_sorption = density_particle * porosity * constant_vector * \
-                       (relative_humidity_vector - compute_equilibrium_moisture_vector(alpha, moisture_vector, N)) * \
-                       heat_capacity_vapor * (temp_gas_vector - temp_particle_vector)
-
-    heat_transfer = -heat_transfer_coefficient * density_particle * porosity * specific_surface * \
+    ##################################### UPDATE TEMP ##################################################################
+    conduction_gas = conductivity_gas * (1 - porosity_powder) * laplacian_temp_gas
+    heat_of_sorption_gas = particle_density * porosity_powder * constant * (relative_humidity - equilibrium_state) * \
+                       moisture_vapor_heat_capacity * (temp_gas_vector - temp_particle_vector)
+    heat_transfer_gas = -heat_transfer_coefficient * particle_density * porosity_powder * specific_surface_area * \
                     (temp_gas_vector - temp_particle_vector)
 
-    change_temperature = (conduction + heat_of_sorption + heat_transfer) / \
-                         (density_gas * (1 - porosity) * heat_capacity_wet_gas) - velocity * temp_gradient_vector
+    change_temp_gas = (conduction_gas + heat_of_sorption_gas + heat_transfer_gas) / \
+                      (gas_density * (1 - porosity_powder) * gas_heat_capacity) - gas_velocity * gradient_temp_gas
 
-    temp_gas_vector += change_temperature * dt
-    return temp_gas_vector
+    conduction_particle = conductivity_particle * laplacian_temp_particle / particle_density
+    heat_of_sorption_particle = constant * (relative_humidity - equilibrium_state) * heat_of_vaporization
+    heat_transfer_particle = heat_transfer_coefficient * specific_surface_area * (temp_gas_vector-temp_particle_vector)
+
+    change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
+                           particle_heat_capacity
+
+    return np.concatenate([change_m_gas, change_m_particle, change_temp_gas, change_temp_particle])
 
 
 ######################################### ONE-TIME USE #################################################################
@@ -76,35 +58,27 @@ def volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute):
     return volumetric_flow_rate
 
 
-def compute_velocity(volumetric_flow_rate_liters_per_minute, length, diameter, volume_fraction_powder):
+def compute_velocity(volumetric_flow_rate_liters_per_minute):
     volumetric_flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)
-    area_column = (diameter / 2) ** 2 * np.pi
-    fraction_gas = 1 - volume_fraction_powder
-    # volume_gas_in_tube = area_column * length * fraction_gas
-    velocity = volumetric_flow_rate / (area_column * fraction_gas)  # only area with gas, not powder
+    area_column = (column_diameter / 2) ** 2 * np.pi
+    fraction_gas = 1 - porosity_powder
+    velocity = volumetric_flow_rate / (area_column * fraction_gas)                  # only area with gas, not powder
     return velocity
 
 
-def spec_surface_area(particle_diameter, particle_density):  # CORRECT :)
-    # S_P in m^2/kg - assuming spherical particles S_P=surface_area/volume*density
+def compute_specific_surface_area():
     r = particle_diameter / 2
-    SSA = 3 / (r * particle_density)
-    return SSA
+    specific_surface_area = 3 / (r * particle_density)
+    return specific_surface_area
 
 
-def compute_initial_moisture_particle(alpha, N, relative_humidity):
-    # moisture_particle = (-np.log(-(relative_humidity - 1)) / alpha) ** (1 / N)
-    # print('MP:',moisture_particle)
-    moisture_particle = relative_humidity/alpha
+def compute_moisture_particle_from_RH(relative_humidity):
+    moisture_particle = relative_humidity/alpha_parameter
     return moisture_particle
 
 
-def compute_heat_transfer_coefficient(
-        moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-        particle_diameter, Mw, superficial_velocity, molar_concentration, gas_heat_capacity, conductivity_gas):
-    reynolds_number = compute_mass_transfer_coefficient_vector(
-        moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-        particle_diameter, Mw, superficial_velocity, molar_concentration)[2]
+def compute_heat_transfer_coefficient(molar_concentration_moisture):
+    reynolds_number = compute_mass_transfer_coefficient_vector(molar_concentration_moisture)[2]
     j_m = 0.61 * reynolds_number ** -0.41
     h_GP = (j_m * gas_density * gas_heat_capacity * superficial_velocity) / (
             (gas_heat_capacity * gas_viscosity / conductivity_gas) ** (2 / 3))
@@ -112,109 +86,98 @@ def compute_heat_transfer_coefficient(
 
 
 ######################################### RECURRENT ####################################################################
-def compute_equilibrium_moisture_vector(alpha, moisture_particle_vector, N):
+def compute_equilibrium_moisture_vector(moisture_particle_vector):
     indices = len(moisture_particle_vector)
     f_of_x = np.zeros(indices)
     for i in range(indices):
-        if moisture_particle_vector[i] < 1/alpha:
-            f_of_x[i] = alpha * moisture_particle_vector[i]
+        if moisture_particle_vector[i] < 1/alpha_parameter:
+            f_of_x[i] = alpha_parameter * moisture_particle_vector[i]
         else:
-            f_of_x[i] = 1 - np.exp(-alpha * moisture_particle_vector[i] ** N)
+            f_of_x[i] = 1 - np.exp(-alpha_parameter * moisture_particle_vector[i] ** N)
     return f_of_x
 
 
-def compute_p_saturated_vector(A, B, temp_kelvin_vector, C):  # Double-checked and clear! :)
-    temp_celsius = temp_kelvin_vector - 273.15
+def compute_p_saturated_vector(temp_kelvin_vector):
+    temp_celsius = temp_kelvin_vector - kelvin
     p_saturated = 10 ** (A - B / (temp_celsius + C))
-    p_saturated_pascal_vector = p_saturated * 133.322  # Torr to Pascal
+    p_saturated_pascal_vector = p_saturated * 133.322                                           # Torr to Pascal
     return p_saturated_pascal_vector
 
 
-def compute_molar_concentration_vector(relative_humidity_vector, pressure_saturated_vector, R, temp_vector):
-    molar_concentration = relative_humidity_vector * pressure_saturated_vector / (R * temp_vector)
+def compute_molar_concentration_vector(relative_humidity_vector, pressure_saturated_vector, temp_vector):
+    molar_concentration = relative_humidity_vector * pressure_saturated_vector / (R_gas_constant * temp_vector)
     return molar_concentration
 
 
-def compute_partial_pressure_moisture_vector(molar_concentration_vector, R_gas_constant, temperature_vector):  # c = molar_concentration, ideal gas law
+def compute_partial_pressure_moisture_vector(molar_concentration_vector, temperature_vector):
     partial_pressure_moisture = molar_concentration_vector * R_gas_constant * temperature_vector
     return partial_pressure_moisture
 
 
-def compute_mass_transfer_coefficient_vector(
-        moisture_diffusivity, gas_viscosity, column_diameter, porosity_powder, gas_density, particle_density, flow_rate,
-        particle_diameter, Mw, superficial_velocity, molar_concentration_vector):
-    SSA = spec_surface_area(particle_diameter, particle_density)
+def compute_mass_transfer_coefficient_vector(molar_concentration_vector):
     superficial_mass_velocity = (4 * gas_density * flow_rate) / (np.pi * column_diameter ** 2)  # G_0
-    particle_surface_area = porosity_powder * particle_density * SSA  # a
+    particle_surface_area = porosity_powder * particle_density * specific_surface_area          # a
 
-    reynolds_number = superficial_mass_velocity / (particle_surface_area * gas_viscosity)  # Re
+    reynolds_number = superficial_mass_velocity / (particle_surface_area * gas_viscosity)       # Re
     denominator = gas_viscosity / (gas_density * moisture_diffusivity)
     j_m = 0.61 * reynolds_number ** -0.41
 
-    k_gp_vector = j_m * (molar_concentration_vector * Mw) * superficial_velocity / (denominator ** (2 / 3))  # kg/(s*m2)
+    k_gp_vector = j_m * (molar_concentration_vector * molar_mass_moisture) * superficial_velocity / \
+                  (denominator ** (2 / 3))
     return superficial_mass_velocity, particle_surface_area, reynolds_number, k_gp_vector
 
 
-def compute_Y_from_RH(
-        molar_mass_dry_air, molar_mass_moisture, pressure_ambient, relative_humidity, pressure_saturated):
+def compute_Y_from_RH(relative_humidity, pressure_saturated):
     Y_initial = 1 / (1 + molar_mass_dry_air / molar_mass_moisture * (
             pressure_ambient / relative_humidity - pressure_saturated) / pressure_saturated)
-    if Y_initial < 0:
-        Y_initial = 0
-        print('Computing Y from RH gives negative value. Y now set to 0. Check!')
     return Y_initial
 
 
-def compute_relative_humidity_from_Y_vector(
-        molar_mass_dry_air, molar_mass_moisture, pressure_ambient, Y_current_vector, pressure_saturated_vector):
+def compute_relative_humidity_from_Y_vector(Y_current_vector, pressure_saturated_vector):
     denominator = Y_current_vector * pressure_saturated_vector - molar_mass_moisture / molar_mass_dry_air * \
                   pressure_saturated_vector * (Y_current_vector - 1)
     relative_humidity = Y_current_vector * pressure_ambient / denominator
-    # np.where(relative_humidity < 0)[0] = 0
-    relative_humidity[relative_humidity < 0] = 0
     return relative_humidity
 
 
-def compute_gradient_moisture_vector(vector, space_step):  # Should work for temperature and moisture, where vector
-    # is an array input e.g. moisture gas and the index is the looping variable x
+def compute_gradient_vector(vector, space_step, boundary_condition_0):
     length = len(vector)
     gradient = np.zeros(length)
-    gradient[0] = (vector[0] - moisture_gas_initial_in) / space_step
-    # gradient[length - 1] = 0
+    gradient[0] = (vector[0] - boundary_condition_0) / space_step
 
     for i in range(1, length):
         gradient[i] = (vector[i] - vector[i-1]) / space_step     # TODO: changed to minus. Right or not?
     return gradient
 
 
-def compute_laplacian_moisture_vector(vector, space_step):
+def compute_laplacian_vector(vector, space_step, boundary_condition_0):
     length = len(vector)
     laplacian = np.zeros(length)
-    # laplacian[0] = 0
     laplacian[length - 1] = vector[length - 2] - vector[length - 1] + 0
-    laplacian[0] = (moisture_gas_initial_in - 2 * vector[1] + vector[2]) / (space_step ** 2)
+    laplacian[0] = (boundary_condition_0 - 2 * vector[1] + vector[2]) / (space_step ** 2)
 
     for i in range(1, length - 1):
         laplacian[i] = (vector[i - 1] - 2 * vector[i] + vector[i + 1]) / (space_step ** 2)
     return laplacian
 
-def compute_gradient_temp_vector(vector, space_step):  # Should work for temperature and moisture, where vector
-    # is an array input e.g. moisture gas and the index is the looping variable x
-    length = len(vector)
-    gradient = np.zeros(length)
-    gradient[0] = (vector[0] - temp_initial) / space_step
 
-    for i in range(1, length):
-        gradient[i] = (vector[i] - vector[i-1]) / space_step     # TODO: changed to minus. Right or not?
-    return gradient
+################################## INITIAL CONDITIONS ##################################################################
+gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute)
+specific_surface_area = compute_specific_surface_area()  # m2/kg, SSA
+flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)  # m3/s
+superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                         # superficial velocity U in m/s
 
-def compute_laplacian_temp_vector(vector, space_step):
-    length = len(vector)
-    laplacian = np.zeros(length)
-    # laplacian[0] = 0
-    laplacian[length - 1] = vector[length - 2] - vector[length - 1] + 0
-    laplacian[0] = (temp_initial - 2 * vector[1] + vector[2]) / (space_step ** 2)
+pressure_saturated_initial = compute_p_saturated_vector(temp_initial)
+partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
+molar_concentration_moisture_initial = compute_molar_concentration_vector(
+    relative_humidity_gas_initial, pressure_saturated_initial, temp_initial)
 
-    for i in range(1, length - 1):
-        laplacian[i] = (vector[i - 1] - 2 * vector[i] + vector[i + 1]) / (space_step ** 2)
-    return laplacian
+moisture_gas_initial_bed = compute_Y_from_RH(relative_humidity_bed_initial, pressure_saturated_initial)
+moisture_gas_initial_in = compute_Y_from_RH(relative_humidity_gas_initial, pressure_saturated_initial)
+moisture_particle_initial = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
+moisture_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_initial)
+
+k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_moisture_initial)[3]
+constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
+
+heat_transfer_coefficient = compute_heat_transfer_coefficient(molar_concentration_moisture_initial)
