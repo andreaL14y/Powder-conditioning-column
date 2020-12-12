@@ -1,11 +1,17 @@
 from input_parameters import*
 ###################################### MAIN EQUATIONS (1-4) ############################################################
-def conditioning_column(moisture_matrix, t, space_step, n_space_steps):
+def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_steps):
+    values_per_feature = n_space_steps * n_height_steps
 
-    moisture_gas_vector = moisture_matrix[0:n_space_steps]
-    moisture_particle_vector = moisture_matrix[n_space_steps:n_space_steps * 2]
-    temp_gas_vector = moisture_matrix[n_space_steps * 2:n_space_steps * 3]
-    temp_particle_vector = moisture_matrix[n_space_steps * 3:n_space_steps * 4]
+    moisture_gas_vector = moisture_matrix[0:values_per_feature]
+    moisture_particle_vector = moisture_matrix[values_per_feature:(values_per_feature * 2)]
+    temp_gas_vector = moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
+    temp_particle_vector = moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
+
+    moisture_gas_vector = np.reshape(moisture_gas_vector, (n_height_steps, n_space_steps))
+    moisture_particle_vector = np.reshape(moisture_particle_vector, (n_height_steps, n_space_steps))
+    temp_gas_vector = np.reshape(temp_gas_vector, (n_height_steps, n_space_steps))
+    temp_particle_vector = np.reshape(temp_particle_vector, (n_height_steps, n_space_steps))
 
     ##################################### UPDATE PARAMETERS ############################################################
     equilibrium_state = compute_equilibrium_moisture_vector(moisture_particle_vector)
@@ -49,7 +55,9 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps):
     change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
                            particle_heat_capacity
 
-    return np.concatenate([change_m_gas, change_m_particle, change_temp_gas, change_temp_particle])
+    return np.concatenate([change_m_gas.flatten(), change_m_particle.flatten(), change_temp_gas.flatten(), change_temp_particle.flatten()])
+
+    # return np.concatenate([change_m_gas, change_m_particle, change_temp_gas, change_temp_particle])
 
 
 ######################################### ONE-TIME USE #################################################################
@@ -87,13 +95,15 @@ def compute_heat_transfer_coefficient(molar_concentration_moisture):
 
 ######################################### RECURRENT ####################################################################
 def compute_equilibrium_moisture_vector(moisture_particle_vector):
-    indices = len(moisture_particle_vector)
-    f_of_x = np.zeros(indices)
-    for i in range(indices):
-        if moisture_particle_vector[i] < 1/alpha_parameter:
-            f_of_x[i] = alpha_parameter * moisture_particle_vector[i]
-        else:
-            f_of_x[i] = 1 - np.exp(-alpha_parameter * moisture_particle_vector[i] ** N)
+    rows, cols = np.shape(moisture_particle_vector)
+    # indices = len(moisture_particle_vector)
+    f_of_x = np.zeros((rows, cols))
+    for r in range(rows):
+        for c in range(cols):
+            if moisture_particle_vector[r, c] < 1/alpha_parameter:
+                f_of_x[r, c] = alpha_parameter * moisture_particle_vector[r, c]
+            else:
+                f_of_x[r, c] = 1 - np.exp(-alpha_parameter * moisture_particle_vector[r, c] ** N)
     return f_of_x
 
 
@@ -141,23 +151,25 @@ def compute_relative_humidity_from_Y_vector(Y_current_vector, pressure_saturated
 
 
 def compute_gradient_vector(vector, space_step, boundary_condition_0):
-    length = len(vector)
-    gradient = np.zeros(length)
-    gradient[0] = (vector[0] - boundary_condition_0) / space_step
+    rows, cols = np.shape(vector)
+    # length = len(vector)
+    gradient = np.zeros((rows, cols))
+    gradient[:, 0] = (vector[:, 0] - boundary_condition_0) / space_step
 
-    for i in range(1, length):
-        gradient[i] = (vector[i] - vector[i-1]) / space_step     # TODO: changed to minus. Right or not?
+    for c in range(1, cols):
+        gradient[:, c] = (vector[:, c] - vector[:, c-1]) / space_step     # TODO: changed to minus. Right or not?
     return gradient
 
 
 def compute_laplacian_vector(vector, space_step, boundary_condition_0):
-    length = len(vector)
-    laplacian = np.zeros(length)
-    laplacian[length - 1] = vector[length - 2] - vector[length - 1] + 0
-    laplacian[0] = (boundary_condition_0 - 2 * vector[1] + vector[2]) / (space_step ** 2)
+    rows, cols = np.shape(vector)
+    laplacian = np.zeros((rows, cols))
+    # length = len(vector)
+    laplacian[:, cols - 1] = vector[:, cols - 2] - vector[:, cols - 1] + 0
+    laplacian[:, 0] = (boundary_condition_0 - 2 * vector[:, 0] + vector[:, 1]) / (space_step ** 2)
 
-    for i in range(1, length - 1):
-        laplacian[i] = (vector[i - 1] - 2 * vector[i] + vector[i + 1]) / (space_step ** 2)
+    for c in range(1, cols - 1):
+        laplacian[:, c] = (vector[:, c - 1] - 2 * vector[:, c] + vector[:, c + 1]) / (space_step ** 2)
     return laplacian
 
 
