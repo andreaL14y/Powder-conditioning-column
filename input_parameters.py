@@ -35,6 +35,7 @@ cross_sectional_area = np.pi * (column_diameter/2)**2                           
 volumetric_flow_rate_liters_per_minute = 1                                       # l/min
 
 temp_initial = kelvin + 20                                                       # K, room temperature 20 degrees
+temp_walls = kelvin + 20                                                         # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                              # humidity in bed, starting condition
 relative_humidity_gas_initial = 0.9                                              # humidity of flowing gas
 pressure_ambient = 101325                                                        # atmospheric pressure, Pa

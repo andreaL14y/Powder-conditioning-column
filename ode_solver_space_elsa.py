@@ -5,8 +5,8 @@ from vectorized_define_functions import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
 max_time = 1000000
-n_space_steps = 3
-n_height_steps = 2
+n_space_steps = 5
+n_height_steps = 3
 resolution = 100
 
 ######################################### SETUP ########################################################################
@@ -56,15 +56,12 @@ print(np.shape(temp_particle_vector))
 seconds = max_time
 hours = seconds / 3600
 discrete_time /= 3600
-# computed_system[:, n_space_steps * 2:n_space_steps * 3] -= kelvin
+
 temp_gas_vector -= kelvin
 temp_particle_vector -= kelvin
 max_temp_gas = np.max(temp_gas_vector)
 max_temp_gas_index = np.where(temp_gas_vector == max_temp_gas)
-# print(max_temp_gas_index, system[max_temp_gas_index])
 
-# computed_system[:, n_space_steps * 3:n_space_steps * 4] -= kelvin
-# max_temp_particle = np.max(computed_system[:, (n_space_steps * 3):(n_space_steps * 4)])
 max_temp_particle = np.max(temp_particle_vector)
 
 print(f'Time computed is: {seconds} seconds = {int(hours)} hours = {int(hours/24)} days.')
@@ -87,7 +84,8 @@ saturated_color = 'lightcoral'
 
 # counter = 0
 epsilon = 0.001
-height_of_interest = 1
+height_of_interest = 2
+height_of_interest -= 1
 for feature in range(4):
     if feature == 0 or feature == 1:
         current_color = moisture_color
