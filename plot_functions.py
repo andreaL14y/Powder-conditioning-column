@@ -8,8 +8,8 @@ def plot_sections_over_time(
         moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle):
     epsilon = 0.001
     height_of_interest -= 1
-    fig, ax = plt.subplots(n_space_steps, 4)
-    fig.suptitle(f'Moisture & temperature in cylinder sections over time. Total time: {int(hours)} hours.', fontsize=14)
+    fig, ax = plt.subplots(n_space_steps, 4, figsize=(20, 13))
+    fig.suptitle(f'Moisture & temperature in cylinder sections over time. Total time: {int(hours)} hours.', fontsize=16)
     ax[0, 0].set_title('Moisture Gas')
     ax[0, 1].set_title('Moisture Particle')
     ax[0, 2].set_title('Temp Gas')
@@ -82,8 +82,8 @@ def plot_sections_over_time(
         ax[step, 1].grid()
         ax[step, 2].grid()
         ax[step, 3].grid()
-    plt.savefig('system_over_time.png')
-    plt.show()
+    plt.savefig('system_over_time.pdf')
+    # plt.show()
 
 def plot_heatmap(
         moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
@@ -92,8 +92,9 @@ def plot_heatmap(
     time, height, length = np.shape(moisture_gas_vector)
     n_plots = 5
     plot_times = np.linspace(0, time-1, n_plots, dtype=int)
-    fig, ax = plt.subplots(n_plots, 4)
-    fig.suptitle(f'Moisture & temperature in cylinder at chosen times. Total time: {int(hours)} hours.', fontsize=14)
+    fig, ax = plt.subplots(n_plots, 4, figsize=(20, 13))
+
+    fig.suptitle(f'Moisture & temperature in cylinder at chosen times. Total time: {int(hours)} hours.', fontsize=16)
     ax[0, 0].set_title('Moisture Gas')
     ax[0, 1].set_title('Moisture Particle')
     ax[0, 2].set_title('Temp Gas')
@@ -121,6 +122,6 @@ def plot_heatmap(
         ax[index, 3].imshow(temp_particle_vector[h, :, :])
         im = ax[index, 3].imshow(temp_particle_vector[h, :, :], vmin=temp_min-kelvin, vmax=max_temp_particle, cmap=temp_color)
         fig.colorbar(im, ax=ax[index, 3])
-    plt.savefig('heatmap_chosen_times.png')
-    plt.show()
+    plt.savefig('heatmap_chosen_times.pdf')
+    # plt.show()
 
