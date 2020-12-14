@@ -23,18 +23,19 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     mass_transfer_coefficient = compute_mass_transfer_coefficient_vector(molar_concentration_moisture)[3]
     constant = mass_transfer_coefficient * specific_surface_area * pressure_saturated / pressure_ambient
 
-    laplacian_moisture_gas = compute_laplacian_vector(moisture_gas_vector, space_step, moisture_gas_initial_in,
-                                                      boundary_condition_L=0, boundary_condition_wall=0)
+    laplacian_moisture_gas = compute_laplacian_vector(
+        moisture_gas_vector, space_step, moisture_gas_initial_in, boundary_condition_L=moisture_gas_end, boundary_condition_wall=0,
+        temperature=False)
     gradient_moisture_gas = compute_gradient_vector(moisture_gas_vector, space_step, moisture_gas_initial_in)
 
     laplacian_temp_gas = compute_laplacian_vector(
         temp_gas_vector, space_step, temp_initial, boundary_condition_L=temp_initial,
-        boundary_condition_wall=temp_walls)
+        boundary_condition_wall=temp_walls, temperature=True)
     gradient_temp_gas = compute_gradient_vector(temp_gas_vector, space_step, temp_initial)
 
     laplacian_temp_particle = compute_laplacian_vector(
         temp_particle_vector, space_step, temp_initial, boundary_condition_L=temp_initial,
-        boundary_condition_wall=temp_walls)
+        boundary_condition_wall=temp_walls, temperature=True)
 
     # (vector, space_step, boundary_condition_0, boundary_condition_L, boundary_condition_wall)
 
@@ -168,31 +169,42 @@ def compute_gradient_vector(vector, space_step, boundary_condition_0):
     return gradient
 
 
-def compute_laplacian_vector(vector, space_step, boundary_condition_0, boundary_condition_L, boundary_condition_wall):
+def compute_laplacian_vector(vector, space_step, boundary_condition_0, boundary_condition_L, boundary_condition_wall,
+                             temperature=True):
     rows, cols = np.shape(vector)
     rows_padded = rows + 2
     cols_padded = cols + 2
-    # Create the matrix with zeros all around it. Fill with boundary conditions.
+    # Create the matrix with zeros all around it.
     padded_vector = np.zeros((rows_padded, cols_padded))
     padded_vector[1:rows+1, 1:cols+1] = vector
+    # Fill with boundary conditions at start and end of tube.
     padded_vector[0:rows+2, 0] = boundary_condition_0
     padded_vector[0:rows+2, cols+1] = boundary_condition_L
-    padded_vector[0, 0:cols+2] = boundary_condition_wall
-    padded_vector[rows+1, 0:cols+2] = boundary_condition_wall
+    # Fill with boundary conditions at walls for temperature
+    if temperature:
+        padded_vector[0, 0:cols+2] = boundary_condition_wall
+        padded_vector[rows+1, 0:cols+2] = boundary_condition_wall
+    else:
+        padded_vector[0, 0:cols + 2] = padded_vector[1, 0:cols + 2]
+        padded_vector[rows + 1, 0:cols + 2] = padded_vector[rows, 0:cols + 2]
+
     # print(padded_vector)
 
     laplacian = np.zeros((rows, cols))
     for c in range(0, cols):
-        laplacian[:, c] = (padded_vector[1:(rows_padded-1), c] - 2 * padded_vector[1:(rows_padded-1), c+1] + padded_vector[1:(rows_padded-1), c + 2])
+        laplacian[:, c] = (padded_vector[1:(rows_padded-1), c] - 2 * padded_vector[1:(rows_padded-1), c+1] +
+                           padded_vector[1:(rows_padded-1), c + 2])
 
     for r in range(0, rows):
-        laplacian[r, :] += (padded_vector[r, 1:(cols_padded-1)] - 2 * padded_vector[r+1, 1:(cols_padded-1)] + padded_vector[r + 2, 1:(cols_padded-1)])
+        laplacian[r, :] += (padded_vector[r, 1:(cols_padded-1)] - 2 * padded_vector[r+1, 1:(cols_padded-1)] +
+                            padded_vector[r + 2, 1:(cols_padded-1)])
     # print(laplacian)
     laplacian /= (space_step ** 2)
     return laplacian
 
 # N = np.zeros((1, 5)) + 1
-# O = compute_laplacian_vector(N, 1, boundary_condition_0=3, boundary_condition_L=0, boundary_condition_wall=5)
+# O = compute_laplacian_vector(N, 1, boundary_condition_0=3, boundary_condition_L=0, boundary_condition_wall=5, temperature=False)
+# print('Laplacian: \n',O)
 
 ################################## INITIAL CONDITIONS ##################################################################
 gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute)
@@ -207,6 +219,7 @@ molar_concentration_moisture_initial = compute_molar_concentration_vector(
 
 moisture_gas_initial_bed = compute_Y_from_RH(relative_humidity_bed_initial, pressure_saturated_initial)
 moisture_gas_initial_in = compute_Y_from_RH(relative_humidity_gas_initial, pressure_saturated_initial)
+moisture_gas_end = compute_Y_from_RH(relative_humidity_gas_end, pressure_saturated_initial)
 moisture_particle_initial = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
 moisture_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_initial)
 
@@ -214,3 +227,6 @@ k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_mois
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
 
 heat_transfer_coefficient = compute_heat_transfer_coefficient(molar_concentration_moisture_initial)
+temp_min = min(temp_initial, temp_walls)
+
+# print(moisture_gas_end)
