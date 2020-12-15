@@ -26,12 +26,14 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     laplacian_moisture_gas = compute_laplacian_vector(
         moisture_gas_vector, space_step, moisture_gas_initial_in, boundary_condition_L=moisture_gas_end, boundary_condition_wall=0,
         temperature=False)
-    gradient_moisture_gas = compute_gradient_vector(moisture_gas_vector, space_step, moisture_gas_initial_in)
+    gradient_moisture_gas = compute_gradient_vector(
+        moisture_gas_vector, space_step, moisture_gas_initial_in, boundary_condition_L=moisture_gas_end)
 
     laplacian_temp_gas = compute_laplacian_vector(
         temp_gas_vector, space_step, temp_initial, boundary_condition_L=temp_initial,
         boundary_condition_wall=temp_walls, temperature=True)
-    gradient_temp_gas = compute_gradient_vector(temp_gas_vector, space_step, temp_initial)
+    gradient_temp_gas = compute_gradient_vector(
+        temp_gas_vector, space_step, temp_initial, boundary_condition_L=temp_initial)
 
     laplacian_temp_particle = compute_laplacian_vector(
         temp_particle_vector, space_step, temp_initial, boundary_condition_L=temp_initial,
@@ -159,13 +161,19 @@ def compute_relative_humidity_from_Y_vector(Y_current_vector, pressure_saturated
     return relative_humidity
 
 
-def compute_gradient_vector(vector, space_step, boundary_condition_0):
+def compute_gradient_vector(vector, space_step, boundary_condition_0, boundary_condition_L):
     rows, cols = np.shape(vector)
     gradient = np.zeros((rows, cols))
-    gradient[:, 0] = (vector[:, 0] - boundary_condition_0) / space_step
 
-    for c in range(1, cols):
-        gradient[:, c] = (vector[:, c] - vector[:, c-1]) / space_step     # TODO: changed to minus. Right or not?
+    gradient[:, 0] = (vector[:, 1] - boundary_condition_0) / (2 * space_step)
+    gradient[:, cols - 1] = (vector[:, cols - 1] - vector[:, cols - 2]) / (space_step)
+
+    # for c in range(1, cols):
+    for c in range(1, cols-1):
+        # gradient[:, c] = (vector[:, c] - vector[:, c-1]) / space_step     # TODO: changed to minus. Right or not?
+        gradient[:, c] = (vector[:, c+1] - vector[:, c-1]) / (2*space_step)
+
+
     return gradient
 
 
