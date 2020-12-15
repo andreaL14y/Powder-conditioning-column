@@ -235,6 +235,6 @@ k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_mois
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
 
 heat_transfer_coefficient = compute_heat_transfer_coefficient(molar_concentration_moisture_initial)
-temp_min = min(temp_initial, temp_walls)
+temp_min = min(temp_initial, temp_walls) - kelvin
 
 # print(moisture_gas_end)
