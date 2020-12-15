@@ -1,7 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from define_functions import*
-from vectorized_define_functions import*
+from vectorized_define_functions import gas_velocity, moisture_particle_initial, moisture_gas_initial_bed, \
+    pressure_saturated_initial, partial_pressure_moisture_initial, molar_concentration_moisture_initial, k_GP_initial, \
+    heat_transfer_coefficient, constant_initial, moisture_gas_initial_in, flow_rate, superficial_velocity
+from vectorized_define_functions_OLD import*
 from input_parameters import*
 
 space_steps = 5
@@ -30,7 +33,7 @@ pressure_saturated = np.zeros(space_steps) + pressure_saturated_initial
 partial_pressure_moisture = np.zeros(space_steps) + partial_pressure_moisture_initial
 molar_concentration_moisture = np.zeros(space_steps) + molar_concentration_moisture_initial
 mass_transfer_coefficient = np.zeros(space_steps) + k_GP_initial
-heat_transfer_coefficient = heat_transfer_coefficient_initial
+heat_transfer_coefficient = heat_transfer_coefficient
 constant = np.zeros(space_steps) + constant_initial
 
 moisture_full_humidity = compute_initial_moisture_particle(alpha_parameter, N, 0.9)
@@ -67,8 +70,8 @@ for t in range(time_steps - 1):
     moisture_gas_current = moisture_gas[t, 1:]
     relative_humidity_current = relative_humidity[t, 1:]
 
-    laplacian_moisture = compute_laplacian_vector(moisture_gas[t, :], space_step)
-    gradient_moisture = compute_gradient_vector(moisture_gas[t, :], space_step)
+    laplacian_moisture = compute_laplacian_moisture_vector(moisture_gas[t, :], space_step, moisture_gas_initial_in)
+    gradient_moisture = compute_gradient_moisture_vector(moisture_gas[t, :], space_step, moisture_gas_initial_in)
 
     moisture_particle[t + 1, 1:] = compute_moisture_particle_vector(
         moisture_particle_current, alpha_parameter, N, relative_humidity_current, time_step, constant[1:], verbose=False)
@@ -78,8 +81,8 @@ for t in range(time_steps - 1):
         constant[1:], gas_velocity, moisture_diffusivity, gradient_moisture[1:], laplacian_moisture[1:], gas_density,
         particle_density, porosity_powder, verbose=False)
 
-    laplacian_temp = compute_laplacian_vector(temp_gas[t, :], space_step)
-    gradient_temp = compute_gradient_vector(temp_gas[t, :], space_step)
+    laplacian_temp = compute_laplacian_temp_vector(temp_gas[t, :], space_step)
+    gradient_temp = compute_gradient_temp_vector(temp_gas[t, :], space_step)
 
     temp_particle[t + 1, 1:] = compute_temperature_particle_vector(
         temp_particle_current, constant[1:], time_step, conductivity_particle, laplacian_temp[1:], particle_density,
@@ -139,12 +142,13 @@ print('Moisture gas x=1:\n', (moisture_gas)[0:t, 1])
 print('RH: \n', relative_humidity[0:t, 1])
 
 x = len(plot_gas)
-fig, ax = plt.subplots(1, 4)
-ax[0].plot(np.arange(x)[:t-1], plot_particle[:t-1, 2], label = 'Particle moisture x2')
+fig, ax = plt.subplots(1, 4, figsize=(20, 13))
+fig.suptitle(f'Time: {time_steps * time_step} s', fontsize=16)
+# ax[0].plot(np.arange(x)[:t-1], plot_particle[:t-1, 2], label = 'Particle moisture x2')
 ax[0].plot(np.arange(x)[:t-1], plot_particle[:t-1, 1], label = 'Particle moisture x1')
 
-ax[1].plot(np.arange(x)[:t-1], plot_RH[:t-1, 1], label = 'RH x1')
-ax[1].plot(np.arange(x)[:t-1], plot_RH[:t-1, 2], label = 'RH x2')
+ax[1].plot(np.arange(x)[:t-1], plot_gas[:t-1, 1], label = 'Gas moisture x1')
+# ax[1].plot(np.arange(x)[:t-1], plot_gas[:t-1, 2], label = 'Gas moisture x2')
 
 ax[2].plot(np.arange(x)[:t-1], plot_particle_temp[:t-1, 1], label = 'Particle temp x1')
 # ax[2].plot(np.arange(x)[:t-1], plot_particle_temp[:t-1, 2], label = 'Particle temp x2')
@@ -155,13 +159,14 @@ ax[3].plot(np.arange(x)[:t-1], plot_gas_temp[:t-1, 1], label = 'Gas temp x1')
 # ax[3].plot(np.arange(x)[:t-1], plot_gas_temp[:t-1, 1], label = 'Gas temp x1')
 ax[3].set_ylim(0, 500)
 
-ax[0].legend(loc="best")
-ax[1].legend(loc="best")
-ax[2].legend(loc="best")
-ax[3].legend(loc="best")
+ax[0].legend(loc="upper left")
+ax[1].legend(loc="upper left")
+ax[2].legend(loc="upper left")
+ax[3].legend(loc="upper left")
 
-plt.title(f'Time: {time_steps * time_step} s')
+# plt.title(f'Time: {time_steps * time_step} s')
 plt.xlabel('Time t')
 
 # plt.plot(np.arange(x)[:t-1], plot_gas[:t-1])
+plt.savefig('explicit_method_issues.pdf')
 plt.show()

@@ -175,7 +175,7 @@ def compute_relative_humidity_from_Y_vector(
     return relative_humidity
 
 
-def compute_gradient_moisture_vector(vector, space_step):  # Should work for temperature and moisture, where vector
+def compute_gradient_moisture_vector(vector, space_step, moisture_gas_initial_in):  # Should work for temperature and moisture, where vector
     # is an array input e.g. moisture gas and the index is the looping variable x
     length = len(vector)
     gradient = np.zeros(length)
@@ -187,7 +187,7 @@ def compute_gradient_moisture_vector(vector, space_step):  # Should work for tem
     return gradient
 
 
-def compute_laplacian_moisture_vector(vector, space_step):
+def compute_laplacian_moisture_vector(vector, space_step, moisture_gas_initial_in):
     length = len(vector)
     laplacian = np.zeros(length)
     laplacian[length - 1] = vector[length - 2] - vector[length - 1] + 0
