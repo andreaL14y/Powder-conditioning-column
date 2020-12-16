@@ -3,11 +3,11 @@ from vectorized_define_functions import *
 from plot_functions import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
-max_time = 400000
+max_time = 550000
 n_space_steps = 10
-n_height_steps = 5
-resolution = 100
-height_of_interest = 3
+n_height_steps = 7
+resolution = 1000
+height_of_interest = 4
 
 ######################################### SETUP ########################################################################
 values_per_feature = n_space_steps * n_height_steps
@@ -52,8 +52,8 @@ seconds = max_time
 hours = seconds / 3600
 discrete_time /= 3600
 
-temp_gas_vector -= kelvin
-temp_particle_vector -= kelvin
+# temp_gas_vector -= kelvin
+# temp_particle_vector -= kelvin
 max_temp_gas = np.max(temp_gas_vector)
 max_temp_gas_index = np.where(temp_gas_vector == max_temp_gas)
 
