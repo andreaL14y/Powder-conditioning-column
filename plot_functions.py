@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.patches as mpatches
-# from ode_solver_space_elsa import*
+from matplotlib.widgets import Slider
+
 def plot_sections_over_time(
         moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
         n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
@@ -56,8 +57,8 @@ def plot_sections_over_time(
 
         ax[step, 2].plot(discrete_time, temp_gas_vector[:, height_of_interest, step], c=temp_color)
         patch = mpatches.Patch(color=temp_color, label=f'{step}')
-        ax[step, 2].set_ylim(temp_min - (kelvin + 1), max_temp_gas + 1)
-        ax[step, 2].hlines(temp_min - kelvin, 0, discrete_time[-1], colors=initial_color,
+        ax[step, 2].set_ylim(temp_min - 1, max_temp_gas + 1)
+        ax[step, 2].hlines(temp_min, 0, discrete_time[-1], colors=initial_color,
                            linestyles=initial_line)
         ax[step, 2].hlines(max_temp_gas, 0, discrete_time[-1], colors=saturated_color,
                            linestyles=initial_line)
@@ -68,8 +69,8 @@ def plot_sections_over_time(
         ax[step, 3].plot(discrete_time, temp_particle_vector[:, height_of_interest, step],
                          c=temp_color)
         patch = mpatches.Patch(color=temp_color, label=f'{step}')
-        ax[step, 3].set_ylim(temp_min - (kelvin + 1), max_temp_particle + 1)
-        ax[step, 3].hlines(temp_min - kelvin, 0, discrete_time[-1], colors=initial_color,
+        ax[step, 3].set_ylim(temp_min - 1, max_temp_particle + 1)
+        ax[step, 3].hlines(temp_min, 0, discrete_time[-1], colors=initial_color,
                            linestyles=initial_line)
 
         ax[step, 3].hlines(max_temp_particle, 0, discrete_time[-1], colors=saturated_color,
@@ -115,13 +116,61 @@ def plot_heatmap(
 
 
         ax[index, 2].imshow(temp_gas_vector[h, :, :])
-        im = ax[index, 2].imshow(temp_gas_vector[h, :, :], vmin=temp_min-kelvin, vmax=max_temp_gas, cmap=temp_color)
+        im = ax[index, 2].imshow(temp_gas_vector[h, :, :], vmin=temp_min, vmax=max_temp_gas, cmap=temp_color)
         fig.colorbar(im, ax=ax[index, 2])
 
 
         ax[index, 3].imshow(temp_particle_vector[h, :, :])
-        im = ax[index, 3].imshow(temp_particle_vector[h, :, :], vmin=temp_min-kelvin, vmax=max_temp_particle, cmap=temp_color)
+        im = ax[index, 3].imshow(temp_particle_vector[h, :, :], vmin=temp_min, vmax=max_temp_particle, cmap=temp_color)
         fig.colorbar(im, ax=ax[index, 3])
     plt.savefig('heatmap_chosen_times.pdf')
     # plt.show()
 
+def slide_heat_map(
+    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,
+    max_temp_gas, moisture_particle_initial, moisture_particle_saturated, moisture_gas_initial_bed, moisture_gas_initial_in, hours):
+    # current layer index start with the first layer
+    idx = 0
+    time, height, length = np.shape(moisture_particle_vector)
+
+    # figure axis setup
+    fig, ax = plt.subplots(2, 2, figsize=(20, 13))
+    fig.subplots_adjust(bottom=0.15)
+
+    ax[0, 0].set_title('Moisture Gas')
+    ax[0, 1].set_title('Moisture Particle')
+    ax[1, 0].set_title('Temp Gas')
+    ax[1, 1].set_title('Temp Particle')
+
+    # display initial image
+    im_y = ax[0, 0].imshow(moisture_gas_vector[idx, :, :], cmap='Blues', vmin=moisture_gas_initial_bed, vmax=moisture_gas_initial_in)
+    fig.colorbar(im_y, ax=ax[0, 0])
+
+    im_x = ax[0, 1].imshow(moisture_particle_vector[idx, :, :], cmap='Blues', vmin=moisture_particle_initial, vmax=moisture_particle_saturated)
+    fig.colorbar(im_x, ax=ax[0, 1])
+
+    im_tg = ax[1, 0].imshow(temp_gas_vector[idx, :, :], cmap='Reds', vmin=temp_min, vmax=max_temp_gas)
+    fig.colorbar(im_tg, ax=ax[1, 0])
+
+    im_tp = ax[1, 1].imshow(temp_particle_vector[idx, :, :], cmap='Reds', vmin=temp_min, vmax=max_temp_particle)
+    fig.colorbar(im_tp, ax=ax[1, 1])
+
+    # setup a slider axis and the Slider
+    ax_depth = plt.axes([0.23, 0.02, 0.56, 0.04])
+    slider_depth = Slider(ax_depth, 'Time', 0, time-1, valinit=0)
+
+    fig.suptitle(f'Moisture & temperature in cylinder at time: {int(idx)} hours.', fontsize=16)
+    # update the figure with a change on the slider
+    def update_depth(val):
+        idx = int(round(slider_depth.val))
+        im_x.set_data(moisture_particle_vector[idx, :, :])
+        im_y.set_data(moisture_gas_vector[idx, :, :])
+        im_tp.set_data(temp_particle_vector[idx, :, :])
+        im_tg.set_data(temp_gas_vector[idx, :, :])
+        time_current = idx/time * hours
+        fig.suptitle(f'Moisture & temperature in cylinder at time: {int(time_current)} hours.',
+                     fontsize=16)
+
+    slider_depth.on_changed(update_depth)
+    plt.savefig('heatmap_slider.pdf')
+    plt.show()
