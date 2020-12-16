@@ -6,7 +6,7 @@ import matplotlib
 import numpy as np
 import math
 from define_functions import*
-from define_parameters_OLD import*
+from input_parameters_OLD import*
 from copy import deepcopy
 
 matplotlib.rc('font', size=18)
@@ -17,7 +17,7 @@ NN = 101 #number of grid points
 L = float(0.2) #size of grid
 dx = L/(NN-1) #grid spacing
 dt = dx / superficial_velocity #time step
-nsteps = 20 #number of time steps
+nsteps = 200 #number of time steps
 
 r1 = dt/dx**2 #assuming heat diffusion coefficient == 1
 r2 = dt/(2*dx)
@@ -65,11 +65,12 @@ for t in range(nsteps):
 
     for j in range(int(min(NN, reached_points))):
         b_mp[j] = -constant[j]
+        bb[j] = B_tp.dot(X_P)[j] + b[j]
         r_mp[j] = constant[j]*relative_humidity[j]
 
         A_mp = np.diagflat([1.]+[1-dt*b_mp[j]*0.5 for j in range(NN-1)])
         B_mp = np.diagflat([1.]+[1+dt*b_mp[j]*0.5 for j in range(NN-1)])
-        b = np.array([0.]+[0.5*dt*(r_mp[j]+r_mp[j-1]) for j in range(NN-2)]+[dt*r_mp[j]])
+        b = np.array([dt*r_mp[j]]+[0.5*dt*(r_mp[j]+r_mp[j-1]) for j in range(NN-2)]+[dt*r_mp[j]])# [0.]
 
         pressure_saturated[j]=compute_p_saturated(A, B, temperature_gas[j], C)
         
@@ -88,9 +89,10 @@ for t in range(nsteps):
         #find solution inside domain
         X_P [:j] = (np.linalg.solve(A_mp,bb))[:j]
         #update right hand side
-        print('b: ', b)
+        # print('t: ', t, 'b : ', b[0:3])
         bb[:j] = (B_mp.dot(X_P) + b)[:j]
-#print(X_P)
+        #print(bb)
+print(X_P)
 
 
     #define matrices A, B and b array
