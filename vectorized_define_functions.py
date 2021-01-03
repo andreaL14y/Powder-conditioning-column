@@ -64,12 +64,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
 
     change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
                            particle_heat_capacity
-    # change_temp_particle[:,:] = 0
-    # change_temp_gas[:,:] = 0
     return np.concatenate([change_m_gas.flatten(), change_m_particle.flatten(), change_temp_gas.flatten(), change_temp_particle.flatten()])
-
-    # return np.concatenate([change_m_gas, change_m_particle, change_temp_gas, change_temp_particle])
-
 
 ######################################### ONE-TIME USE #################################################################
 def volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute):
@@ -167,7 +162,6 @@ def compute_gradient_vector(vector, space_step, boundary_condition_0, boundary_c
     gradient[:, 0] = (vector[:, 1] - boundary_condition_0) / (2 * space_step)
     gradient[:, cols - 1] = (vector[:, cols - 1] - vector[:, cols - 2]) / (space_step)
 
-    # for c in range(1, cols):
     for c in range(1, cols-1):
         gradient[:, c] = (vector[:, c+1] - vector[:, c-1]) / (2*space_step)
     return gradient
@@ -191,13 +185,10 @@ def compute_laplacian_vector(vector, space_step, boundary_condition_0, boundary_
         padded_vector[0, 0:cols_padded] = boundary_condition_wall
         padded_vector[rows_padded-1, 0:cols_padded] = boundary_condition_wall
 
-
-    # print(padded_vector)
     laplacian = np.zeros((rows, cols))
     for c in range(0, cols):
         laplacian[:, c] = (padded_vector[1:(rows_padded-1), c] - 2 * padded_vector[1:(rows_padded-1), c+1] +
                            padded_vector[1:(rows_padded-1), c + 2])
-    # print('\n', laplacian)
     if temperature:
         for r in range(0, rows):
             laplacian[r, :] += (padded_vector[r, 1:(cols_padded-1)] - 2 * padded_vector[r+1, 1:(cols_padded-1)] +
@@ -208,20 +199,12 @@ def compute_laplacian_vector(vector, space_step, boundary_condition_0, boundary_
                                 padded_vector[r + 2, 1:(cols_padded-1)])
         laplacian[0, :] += ( - padded_vector[1, 1:(cols_padded - 1)] + padded_vector[2, 1:(cols_padded - 1)])
         laplacian[rows-1, :] += (padded_vector[rows_padded-3, 1:(cols_padded - 1)] - padded_vector[rows_padded-2, 1:(cols_padded - 1)])
-    # print(laplacian)
     laplacian /= (space_step ** 2)
     return laplacian
 
-# N = np.zeros((3, 5)) + 1
-# N[1:3, 3] = 2
-# N[0, 0:2] = 0
-# # print(N)
-# O = compute_laplacian_vector(N, 1, boundary_condition_0=5, boundary_condition_L=0, boundary_condition_wall=5, temperature=True)
-# print('Laplacian: \n',O)
-
 ################################## INITIAL CONDITIONS ##################################################################
 gas_velocity = compute_velocity(volumetric_flow_rate_liters_per_minute)
-specific_surface_area = compute_specific_surface_area()  # m2/kg, SSA
+specific_surface_area = compute_specific_surface_area()                                 # m2/kg, SSA
 flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute)  # m3/s
 superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                         # superficial velocity U in m/s
 
@@ -240,6 +223,4 @@ k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_mois
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
 
 heat_transfer_coefficient = compute_heat_transfer_coefficient(molar_concentration_moisture_initial)
-temp_min = min(temp_initial, temp_walls) #- kelvin
-
-# print(moisture_gas_end)
+temp_min = min(temp_initial, temp_walls)

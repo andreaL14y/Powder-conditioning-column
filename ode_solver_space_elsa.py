@@ -4,26 +4,19 @@ from plot_functions import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
 max_time = 550000
-n_space_steps = 10
-n_height_steps = 7
+n_space_steps = 10 # MUST BE EVEN NUMBER
+n_height_steps = int(n_space_steps/2)
 resolution = 1000
-height_of_interest = 4
+height_of_interest = 3
 
 ######################################### SETUP ########################################################################
 values_per_feature = n_space_steps * n_height_steps
 space_step_size = bed_length / n_space_steps
 discrete_time = np.linspace(0, max_time, resolution)
 
-# moisture_gas_initial_all = np.zeros(n_space_steps) + moisture_gas_initial_bed
 moisture_gas_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_gas_initial_bed
-
-# moisture_particle_initial_all = np.zeros(n_space_steps) + moisture_particle_initial
 moisture_particle_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_particle_initial
-
-# temp_gas_initial = np.zeros(n_space_steps) + temp_initial
 temp_gas_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
-
-# temp_particle_initial = np.zeros(n_space_steps) + temp_initial
 temp_particle_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
 
 ########################################## COMPUTE #####################################################################
@@ -44,16 +37,12 @@ moisture_particle_vector = np.reshape(moisture_particle_vector, (resolution, n_h
 temp_gas_vector = np.reshape(temp_gas_vector, (resolution, n_height_steps, n_space_steps))
 temp_particle_vector = np.reshape(temp_particle_vector, (resolution, n_height_steps, n_space_steps))
 
-# print(np.shape(moisture_gas_vector))
-
 ############################################ PLOT ######################################################################
 # Convert to easier-to-read units
 seconds = max_time
 hours = seconds / 3600
 discrete_time /= 3600
 
-# temp_gas_vector -= kelvin
-# temp_particle_vector -= kelvin
 max_temp_gas = np.max(temp_gas_vector)
 max_temp_gas_index = np.where(temp_gas_vector == max_temp_gas)
 
