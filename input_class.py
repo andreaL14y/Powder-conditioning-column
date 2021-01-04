@@ -1,7 +1,6 @@
 class input_parameter():
     def __init__(self):
         self.R_gas_constant : float
-        self.temp_kelvin : float
         self.antoine_constant_A: float
         self.antoine_constant_B: float
         self.antoine_constant_C: float

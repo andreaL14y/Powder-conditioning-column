@@ -66,12 +66,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
 
     change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
                            in_param.particle_heat_capacity
-    # change_temp_particle[:,:] = 0
-    # change_temp_gas[:,:] = 0
     return np.concatenate([change_m_gas.flatten(), change_m_particle.flatten(), change_temp_gas.flatten(), change_temp_particle.flatten()])
-
-    # return np.concatenate([change_m_gas, change_m_particle, change_temp_gas, change_temp_particle])
-
 
 ######################################### ONE-TIME USE #################################################################
 def volumetric_flow_rate_m3_per_second(in_param: input_parameter):
@@ -169,7 +164,6 @@ def compute_gradient_vector(vector, space_step, boundary_condition_0, boundary_c
     gradient[:, 0] = (vector[:, 1] - boundary_condition_0) / (2 * space_step)
     gradient[:, cols - 1] = (vector[:, cols - 1] - vector[:, cols - 2]) / (space_step)
 
-    # for c in range(1, cols):
     for c in range(1, cols-1):
         gradient[:, c] = (vector[:, c+1] - vector[:, c-1]) / (2*space_step)
     return gradient

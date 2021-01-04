@@ -21,7 +21,6 @@ if __name__ == "__main__":
 
 
     ui.R_gas_constant.setValidator(dvalidator)
-    ui.temp_kelvin.setValidator(dvalidator)
     ui.antoine_constants_A.setValidator(dvalidator)
     ui.antoine_constant_B.setValidator(dvalidator)
     ui.antoine_constant_C.setValidator(dvalidator)
@@ -65,7 +64,6 @@ if __name__ == "__main__":
     def compute():
         ####### SET INPUT PARAMETERS ######################################################################
         in_param.R_gas_constant =float(ui.R_gas_constant.text())
-        in_param.temp_kelvin =float(ui.temp_kelvin.text())
         in_param.antoine_constant_A=float(ui.antoine_constants_A.text())
         in_param.antoine_constant_B=float(ui.antoine_constant_B.text())
         in_param.antoine_constant_C=float(ui.antoine_constant_C.text())
@@ -129,7 +127,6 @@ if __name__ == "__main__":
         init_param.heat_transfer_coefficient = compute_heat_transfer_coefficient(init_param.molar_concentration_moisture_initial, in_param, init_param)
         init_param.temp_min = min(in_param.temp_initial, in_param.temp_walls)
 
-        #func(moisture_diffusivity) ### hier soll die normale funktion ausgeführt werden
         #pcc.close()
         computation_of_system(in_param, dis_param, init_param)
         

@@ -9,16 +9,9 @@ def computation_of_system(in_param: input_parameter, dis_param: discretization_p
     space_step_size = in_param.bed_length / dis_param.n_space_steps
     discrete_time = np.linspace(0, dis_param.max_time, dis_param.resolution)
 
-    # moisture_gas_initial_all = np.zeros(n_space_steps) + moisture_gas_initial_bed
     moisture_gas_initial_all = np.zeros((dis_param.n_height_steps, dis_param.n_space_steps)) + init_param.moisture_gas_initial_bed
-
-    # moisture_particle_initial_all = np.zeros(n_space_steps) + moisture_particle_initial
     moisture_particle_initial_all = np.zeros((dis_param.n_height_steps, dis_param.n_space_steps)) + init_param.moisture_particle_initial
-
-    # temp_gas_initial = np.zeros(n_space_steps) + temp_initial
     temp_gas_initial = np.zeros((dis_param.n_height_steps, dis_param.n_space_steps)) + in_param.temp_initial
-
-    # temp_particle_initial = np.zeros(n_space_steps) + temp_initial
     temp_particle_initial = np.zeros((dis_param.n_height_steps, dis_param.n_space_steps)) + in_param.temp_initial
 
     ########################################## COMPUTE #####################################################################
@@ -38,8 +31,6 @@ def computation_of_system(in_param: input_parameter, dis_param: discretization_p
     moisture_particle_vector = np.reshape(moisture_particle_vector, (dis_param.resolution, dis_param.n_height_steps, dis_param.n_space_steps))
     temp_gas_vector = np.reshape(temp_gas_vector, (dis_param.resolution, dis_param.n_height_steps, dis_param.n_space_steps))
     temp_particle_vector = np.reshape(temp_particle_vector, (dis_param.resolution, dis_param.n_height_steps, dis_param.n_space_steps))
-
-    # print(np.shape(moisture_gas_vector))
 
     ############################################ PLOT ######################################################################
     # Convert to easier-to-read units
