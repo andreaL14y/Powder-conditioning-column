@@ -84,7 +84,7 @@ def plot_sections_over_time(
         ax[step, 2].grid()
         ax[step, 3].grid()
     plt.savefig('system_over_time.pdf')
-    # plt.show()
+    plt.show()
 
 def plot_heatmap(
         moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
@@ -124,7 +124,7 @@ def plot_heatmap(
         im = ax[index, 3].imshow(temp_particle_vector[h, :, :], vmin=temp_min, vmax=max_temp_particle, cmap=temp_color)
         fig.colorbar(im, ax=ax[index, 3])
     plt.savefig('heatmap_chosen_times.pdf')
-    # plt.show()
+    plt.show()
 
 def slide_heat_map(
     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,

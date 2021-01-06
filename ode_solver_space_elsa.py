@@ -3,7 +3,7 @@ from vectorized_define_functions import *
 from plot_functions import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
-max_time = 30000
+max_time = 400000
 n_space_steps = 10 # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 1000
@@ -61,17 +61,17 @@ print('Saturated humidity in particles is: {:.4f} \n'.format(moisture_particle_s
 
 print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas))
 print('Max temperature in particles is: {:.4f} degrees Celcius\n'.format(max_temp_particle))
-#
-# plot_sections_over_time(
-#     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
-#     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
-#     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
-#
-# plot_heatmap(
-#     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
-#     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
-#     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
-#
-# slide_heat_map(
-#     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,
-#     max_temp_gas, moisture_particle_initial, moisture_particle_saturated, moisture_gas_initial_bed, moisture_gas_initial_in, hours)
+
+plot_sections_over_time(
+    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
+    n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
+    moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
+
+plot_heatmap(
+    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
+    n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
+    moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
+
+slide_heat_map(
+    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,
+    max_temp_gas, moisture_particle_initial, moisture_particle_saturated, moisture_gas_initial_bed, moisture_gas_initial_in, hours)
