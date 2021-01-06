@@ -48,16 +48,16 @@ def computation_of_system(in_param: input_parameter, dis_param: discretization_p
     max_moisture_particle = np.max(moisture_particle_vector)
     max_moisture_particle_index = np.where(moisture_particle_vector == max_moisture_particle)
 
-    print(f'Time computed is: {seconds} seconds = {int(hours)} hours = {int(hours/24)} days\n')
-    print('Max humidity in gas is: {:.4f} degrees Celcius'.format(max_moisture_gas))
-    print('Saturated humidity in gas at inlet is: {:.4f} degrees Celcius\n'.format(init_param.moisture_gas_initial_in))
+    # print(f'Time computed is: {seconds} seconds = {int(hours)} hours = {int(hours/24)} days\n')
+    # print('Max humidity in gas is: {:.4f} degrees Celcius'.format(max_moisture_gas))
+    # print('Saturated humidity in gas at inlet is: {:.4f} degrees Celcius\n'.format(init_param.moisture_gas_initial_in))
 
-    print('Max humidity in particles is: {:.4f} degrees Celcius'.format(max_moisture_particle))
-    print('This happens at time, height, length: ', max_moisture_particle_index[0], max_moisture_particle_index[1], max_moisture_particle_index[2])
-    print('Saturated humidity in particles is: {:.4f} degrees Celcius\n'.format(init_param.moisture_particle_saturated))
+    # print('Max humidity in particles is: {:.4f} degrees Celcius'.format(max_moisture_particle))
+    # print('This happens at time, height, length: ', max_moisture_particle_index[0], max_moisture_particle_index[1], max_moisture_particle_index[2])
+    # print('Saturated humidity in particles is: {:.4f} degrees Celcius\n'.format(init_param.moisture_particle_saturated))
 
-    print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas))
-    print('Max temperature in particles is: {:.4f} degrees Celcius\n'.format(max_temp_particle))
+    # print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas))
+    # print('Max temperature in particles is: {:.4f} degrees Celcius\n'.format(max_temp_particle))
 
     plot_sections_over_time(
         moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, dis_param.height_of_interest,

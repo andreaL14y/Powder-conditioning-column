@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     ####### VALIDATOR (ONLY NUMBER INPUT) #########################################################################
     dvalidator=QtGui.QDoubleValidator()
-    dvalidator.setBottom(0.001)
+    dvalidator.setBottom(0.0000001)
 
     ivalidator=QtGui.QIntValidator()
 
@@ -54,7 +54,6 @@ if __name__ == "__main__":
 
     ui.max_time.setValidator(ivalidator)
     ui.n_space_steps.setValidator(ivalidator)
-    ui.n_height_steps.setValidator(ivalidator)
     ui.resolution.setValidator(ivalidator)
 
     in_param = input_parameter()
@@ -98,9 +97,12 @@ if __name__ == "__main__":
         ###### SET DISCRETIZATION PARAMETERS #####################################################
         dis_param.max_time=int(ui.max_time.text())
         dis_param.n_space_steps=int(ui.n_space_steps.text())
-        dis_param.n_height_steps=int(ui.n_height_steps.text())
+        dis_param.n_height_steps=int(0.5*dis_param.n_space_steps)
         dis_param.resolution=int(ui.resolution.text())
-        dis_param.height_of_interest=int(dis_param.n_height_steps/2)+1
+        if ui.height_of_interest.currentIndex() == 0:
+            dis_param.height_of_interest =int(0.5* dis_param.n_height_steps)+1
+        else:
+            dis_param.height_of_interest=1
 
         ###### SET INITIAL CONDITIONS #############################################################
         init_param.kelvin = 273.15
@@ -127,7 +129,16 @@ if __name__ == "__main__":
         init_param.heat_transfer_coefficient = compute_heat_transfer_coefficient(init_param.molar_concentration_moisture_initial, in_param, init_param)
         init_param.temp_min = min(in_param.temp_initial, in_param.temp_walls)
 
-        #pcc.close()
+        pcc.close()
+        print('DISCRETISATION PARAMETERS \n' )
+        for key, value in dis_param.__dict__.items():
+            print(key, ': ', value)
+        print('\n INPUT PARAMETERS \n')
+        for key, value in in_param.__dict__.items():
+            print(key, ': ', value)
+        print('\n INITIAL PARAMETERS \n')
+        for key, value in init_param.__dict__.items():
+            print(key, ': ', value)
         computation_of_system(in_param, dis_param, init_param)
         
     ui.pushButton.clicked.connect(compute)
