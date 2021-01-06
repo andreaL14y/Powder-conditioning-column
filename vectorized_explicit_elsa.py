@@ -94,7 +94,7 @@ for t in range(time_steps - 1):
         temp_particle_current, constant[1:], time_step, conductivity_gas, laplacian_temp[1:], gas_density,
         alpha_parameter, moisture_particle_current, N, moisture_vapor_heat_capacity, relative_humidity_current,
         heat_transfer_coefficient, specific_surface_area, temp_gas_current, gas_heat_capacity, gas_velocity,
-        gradient_temp[1:], porosity_powder, particle_density, verbose=True)
+        gradient_temp[1:], porosity_powder, particle_density, verbose=False)
 
     ############################ UPDATE PARAMETERS #############################################################
     # Use temperature to find saturated pressure
@@ -128,17 +128,9 @@ for t in range(time_steps - 1):
     constant = mass_transfer_coefficient * specific_surface_area * pressure_saturated / pressure_ambient
 
 print('\nRESULTS:')
-# print('Change in temp particles:\n', (temp_particle - temp_initial)[0, 0:5])
 print('Change in temp gas:\n', (temp_gas - temp_initial)[0:50, 1])
-
-# print('Change in moisture particles:\n', (moisture_particle - moisture_particle_initial)[t:t+10, 1])
-# print('Change in moisture gas:\n', (moisture_gas - moisture_gas_initial_in)[t:t+10, 1])
 print('Moisture particle:\n', (moisture_particle)[0:t, 1])
 print('Moisture gas x=1:\n', (moisture_gas)[0:t, 1])
-
-# print(relative_humidity_gas_initial - moisture_gas)
-# print(temp_particle - temp_initial)
-# print('Temp gas is: ', temp_gas)
 print('RH: \n', relative_humidity[0:t, 1])
 
 x = len(plot_gas)

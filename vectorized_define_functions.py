@@ -45,7 +45,9 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
 
     change_m_gas = (change_m_diffusion_gas + change_m_absorption_gas) / \
                    (gas_density * (1 - porosity_powder)) - gas_velocity * gradient_moisture_gas
-
+    # if t ==0:
+    #     print(change_m_diffusion_gas[0,0])
+    #     print(change_m_absorption_gas[0,0])
     change_m_particle = constant * (relative_humidity - equilibrium_state)
 
     ##################################### UPDATE TEMP ##################################################################
@@ -64,6 +66,11 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
 
     change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
                            particle_heat_capacity
+    # print(t)
+    # if t == 1:
+    #     print(conduction_gas[0,0])
+    #     print(heat_of_sorption_gas[0,0])
+    #     print(heat_transfer_gas[0,0])
     return np.concatenate([change_m_gas.flatten(), change_m_particle.flatten(), change_temp_gas.flatten(), change_temp_particle.flatten()])
 
 ######################################### ONE-TIME USE #################################################################

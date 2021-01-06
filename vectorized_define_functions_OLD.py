@@ -9,10 +9,11 @@ def compute_moisture_particle_vector(moisture_particle_vector, alpha, N, relativ
                                      verbose=False):
     change_moisture_x = constant_vector * (
                 relative_humidity_vector - compute_equilibrium_moisture_vector(alpha, moisture_particle_vector, N))  # dX/dt
-    # print(change_moisture_x[time])
     moisture_difference_x = change_moisture_x * dt  # dX
     moisture_particle_current = moisture_particle_vector + moisture_difference_x
-    print('Change moisture particle: ', change_moisture_x)
+
+    print('RH: ', relative_humidity_vector[0])
+    print('Moisture particle: ', moisture_particle_current[0])
     return moisture_particle_current
 
 
@@ -28,9 +29,8 @@ def compute_moisture_gas_vector(
     # change_moisture_absorption = 0
     change_moisture = (change_moisture_diffusion + change_moisture_absorption) / (density_gas * (1 - porosity)) - \
                       velocity * gradient_vector
-    print('Change moisture gas: ', change_moisture)
     moisture_gas_current = moisture_gas_vector + change_moisture * dt
-
+    print('Moisture gas: ', moisture_gas_current[0])
     return moisture_gas_current
 
 
@@ -46,7 +46,11 @@ def compute_temperature_particle_vector(
 
     change_temperature = (conduction + heat_of_sorption + heat_transfer) / heat_capacity
     temp_particle_vector += change_temperature * dt
-
+    print('\n Time')
+    print('Conduction P: ', conduction[0]/heat_capacity, 'deg/s')
+    print('Sorption P: ', heat_of_sorption[0]/heat_capacity, 'deg/s')
+    print('Heat transfer P: ', heat_transfer[0]/heat_capacity, 'deg/s')
+    print('Total change P: ', change_temperature[0] * dt, 'deg')
     return temp_particle_vector
 
 def compute_temperature_gas_vector(
@@ -67,6 +71,11 @@ def compute_temperature_gas_vector(
                          (density_gas * (1 - porosity) * heat_capacity_wet_gas) - velocity * temp_gradient_vector
 
     temp_gas_vector += change_temperature * dt
+    print('Conduction G: ', conduction[0] / (density_gas * (1 - porosity) * heat_capacity_wet_gas), 'deg/s')
+    print('Sorption G: ', heat_of_sorption[0] / (density_gas * (1 - porosity) * heat_capacity_wet_gas), 'deg/s')
+    print('Heat transfer G: ', heat_transfer[0] / (density_gas * (1 - porosity) * heat_capacity_wet_gas), 'deg/s')
+    print('Velocity G: ', velocity * temp_gradient_vector[0], 'deg/s')
+    print('Total change G: ', change_temperature[0] * dt, 'deg')
     return temp_gas_vector
 
 
@@ -175,8 +184,7 @@ def compute_relative_humidity_from_Y_vector(
     return relative_humidity
 
 
-def compute_gradient_moisture_vector(vector, space_step, moisture_gas_initial_in):  # Should work for temperature and moisture, where vector
-    # is an array input e.g. moisture gas and the index is the looping variable x
+def compute_gradient_moisture_vector(vector, space_step, moisture_gas_initial_in):
     length = len(vector)
     gradient = np.zeros(length)
     gradient[0] = (vector[0] - moisture_gas_initial_in) / space_step
