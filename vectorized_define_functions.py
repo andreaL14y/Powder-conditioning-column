@@ -182,6 +182,7 @@ def compute_laplacian_vector(vector, space_step, boundary_condition_0, boundary_
     # Create the matrix with zeros all around it.
     padded_vector = np.zeros((rows_padded, cols_padded))
     padded_vector[1:rows+1, 1:cols+1] = vector
+    
     # Fill with boundary conditions at start and end of tube.
     padded_vector[0:rows+2, 0] = boundary_condition_0
     # padded_vector[0:rows+2, cols+1] = boundary_condition_L
