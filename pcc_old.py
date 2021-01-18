@@ -378,7 +378,7 @@ class Ui_pcc(object):
         self.label.setText(_translate("pcc", "Discretization parameters:"))
         self.label_37.setText(_translate("pcc", "Maximal time (s):"))
         self.max_time.setText(_translate("pcc", "550000"))
-        self.label_38.setText(_translate("pcc", "Steps in lengths (even, >1):"))
+        self.label_38.setText(_translate("pcc", "Steps in lengths:"))
         self.n_space_steps.setText(_translate("pcc", "10"))
         self.label_39.setText(_translate("pcc", "Height of interest:"))
         self.label_40.setText(_translate("pcc", "Resolution"))
