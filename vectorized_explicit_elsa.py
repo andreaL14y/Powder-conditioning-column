@@ -134,7 +134,7 @@ print('Moisture gas x=1:\n', (moisture_gas)[0:t, 1])
 print('RH: \n', relative_humidity[0:t, 1])
 
 x = len(plot_gas)
-fig, ax = plt.subplots(1, 4, figsize=(20, 13))
+fig, ax = plt.subplots(1, 4, figsize=(20, 5))
 fig.suptitle(f'Time: {time_steps * time_step} s', fontsize=16)
 # ax[0].plot(np.arange(x)[:t-1], plot_particle[:t-1, 2], label = 'Particle moisture x2')
 ax[0].plot(np.arange(x)[:t-1], plot_particle[:t-1, 1], label = 'Particle moisture x1')
