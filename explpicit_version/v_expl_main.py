@@ -4,7 +4,7 @@ from define_functions import*
 from vectorized_define_functions import gas_velocity, moisture_particle_initial, moisture_gas_initial_bed, \
     pressure_saturated_initial, partial_pressure_moisture_initial, molar_concentration_moisture_initial, k_GP_initial, \
     heat_transfer_coefficient, constant_initial, moisture_gas_initial_in, flow_rate, superficial_velocity
-from vectorized_define_functions_OLD import*
+from v_expl_functions import*
 from input_parameters import*
 
 space_steps = 5
@@ -149,5 +149,5 @@ ax[3].legend(loc="upper left")
 plt.title(f'Time: {time_steps * time_step} s')
 plt.xlabel('Time t')
 
-plt.savefig('explicit_method_issues.pdf')
+plt.savefig('v_expl_plot.pdf')
 plt.show()
