@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from define_functions import*
-from vectorized_define_functions import gas_velocity, moisture_particle_initial, moisture_gas_initial_bed, \
+from v_ode_functions import gas_velocity, moisture_particle_initial, moisture_gas_initial_bed, \
     pressure_saturated_initial, partial_pressure_moisture_initial, molar_concentration_moisture_initial, k_GP_initial, \
     heat_transfer_coefficient, constant_initial, moisture_gas_initial_in, flow_rate, superficial_velocity
 from v_expl_functions import*

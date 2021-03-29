@@ -4,7 +4,7 @@ from plot_ode_functions import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
 max_time = 400000
-n_space_steps = 10 # MUST BE EVEN NUMBER
+n_space_steps = 10                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 1000
 height_of_interest = 3
