@@ -1,5 +1,5 @@
 from scipy.integrate import odeint
-from vectorized_define_functions import *
+from v_functions import *
 from plot_functions import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
