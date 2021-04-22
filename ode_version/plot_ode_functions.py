@@ -1,5 +1,8 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+
 import matplotlib.patches as mpatches
 from matplotlib.widgets import Slider
 

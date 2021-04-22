@@ -1,4 +1,6 @@
 from scipy.integrate import odeint
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from v_ode_functions import *
 from plot_ode_functions import *
 
