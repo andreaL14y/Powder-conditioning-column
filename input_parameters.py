@@ -33,9 +33,10 @@ bed_length = 0.2                                                                
 column_diameter = 0.1                                                            # m
 cross_sectional_area = np.pi * (column_diameter/2)**2                            # m^2
 volumetric_flow_rate_liters_per_minute = 1                                       # l/min
+rotation_time_interval = 300 * 60                                                 # s after which to rotate
 
 temp_initial = kelvin + 20                                                       # K, room temperature 20 degrees
-temp_walls = kelvin + 18                                                         # At cylinder walls, cooling
+temp_walls = kelvin + 20                                                         # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                              # humidity in bed, starting condition
 relative_humidity_gas_initial = 0.9                                              # humidity of flowing gas
 relative_humidity_gas_end = 0.2                                                  # humidity at end of cylinder
