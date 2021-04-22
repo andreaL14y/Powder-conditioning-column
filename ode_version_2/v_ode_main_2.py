@@ -6,16 +6,17 @@ from plot_ode_functions_2 import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
 max_time = 400000                       # seconds
+max_time = 2.5 * 60 * 60                       # seconds
 n_space_steps = 10                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 1000
 height_of_interest = 3
+n_features = 4
 
 ######################################### SETUP ########################################################################
 values_per_feature = n_space_steps * n_height_steps
 space_step_size = bed_length / n_space_steps
 discrete_time = np.linspace(0, max_time, resolution)
-#print(discrete_time)
 
 moisture_gas_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_gas_initial_bed
 moisture_particle_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_particle_initial
@@ -45,18 +46,9 @@ for rotation in range(n_rotations):
 
     #initial_system = average
     initial_system = computed_system[rotation, -1, :]
-
-    moisture_gas_avg = np.average(computed_system[rotation, -1, 0:values_per_feature])
-    initial_system[0:values_per_feature] = moisture_gas_avg
-
-    moisture_particle_avg = np.average(computed_system[rotation, -1, values_per_feature:(2 * values_per_feature)])
-    initial_system[values_per_feature:(2 * values_per_feature)] = moisture_particle_avg
-
-    temp_gas_avg = np.average(computed_system[rotation, -1, (2 * values_per_feature):(3 * values_per_feature)])
-    initial_system[(2 * values_per_feature):(3 * values_per_feature)] = temp_gas_avg
-
-    temp_particle_avg = np.average(computed_system[rotation, -1, (3 * values_per_feature):(4 * values_per_feature)])
-    initial_system[(3 * values_per_feature):(4 * values_per_feature)] = temp_particle_avg
+    for feature in range(n_features):
+        avg = np.average(computed_system[rotation, -1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
+        initial_system[(feature * values_per_feature):((feature + 1) * values_per_feature)] = avg
 
 ########################################## SPLIT #######################################################################
 moisture_gas_vector = computed_system[:, :, 0:values_per_feature]
@@ -92,19 +84,19 @@ print('Max humidity in particles is: {:.4f}'.format(max_moisture_particle))
 print('This happens at time, height, length: ', max_moisture_particle_index[0], max_moisture_particle_index[1], max_moisture_particle_index[2])
 print('Saturated humidity in particles is: {:.4f} \n'.format(moisture_particle_saturated))
 
-print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas))
-print('Max temperature in particles is: {:.4f} degrees Celcius\n'.format(max_temp_particle))
+print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas - kelvin))
+print('Max temperature in particles is: {:.4f} degrees Celcius\n'.format(max_temp_particle - kelvin))
 
 plot_sections_over_time(
     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
 
-plot_heatmap(
-    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
-    n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
-    moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
-
-slide_heat_map(
-    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,
-    max_temp_gas, moisture_particle_initial, moisture_particle_saturated, moisture_gas_initial_bed, moisture_gas_initial_in, hours)
+# plot_heatmap(
+#     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
+#     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
+#     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
+#
+# slide_heat_map(
+#     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,
+#     max_temp_gas, moisture_particle_initial, moisture_particle_saturated, moisture_gas_initial_bed, moisture_gas_initial_in, hours)

@@ -7,12 +7,13 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     moisture_particle_vector = moisture_matrix[values_per_feature:(values_per_feature * 2)]
     temp_gas_vector = moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
     temp_particle_vector = moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
+    amorphous_material_vector = moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
 
     moisture_gas_vector = np.reshape(moisture_gas_vector, (n_height_steps, n_space_steps))
     moisture_particle_vector = np.reshape(moisture_particle_vector, (n_height_steps, n_space_steps))
     temp_gas_vector = np.reshape(temp_gas_vector, (n_height_steps, n_space_steps))
     temp_particle_vector = np.reshape(temp_particle_vector, (n_height_steps, n_space_steps))
-
+    amorphous_material_vector = np.reshape(amorphous_material_vector, (n_height_steps, n_space_steps))
 
     ##################################### UPDATE PARAMETERS ############################################################
     equilibrium_state = compute_equilibrium_moisture_vector(moisture_particle_vector)
@@ -66,11 +67,20 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
                            particle_heat_capacity
 
+    ############################## UPDATE AMORPHOUS MATERIAL ###########################################################
+    change_amorphous_material = compute_amorphicity(moisture_particle_vector, temp_particle_vector, amorphous_material_vector)
+
+    ##################################### CONCATENATE ##################################################################
     moisture_matrix_updated = np.concatenate([change_m_gas.flatten(), change_m_particle.flatten(),
                                               change_temp_gas.flatten(), change_temp_particle.flatten()])
     return moisture_matrix_updated
 
 ######################################### ONE-TIME USE #################################################################
+def compute_amorphicity(moisture_particle_vector, temp_particle_vector, amorphous_material_vector):
+    # use nn model
+    return amorphous_material_vector
+
+
 def volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_minute):
     volumetric_flow_rate = volumetric_flow_rate_liters_per_minute / (60 * 10 ** 3)  # from l/min -> cubic meters per s
     return volumetric_flow_rate
