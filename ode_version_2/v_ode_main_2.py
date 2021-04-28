@@ -2,6 +2,7 @@ from scipy.integrate import odeint
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from v_ode_functions_2 import *
+from v_ode_main_functions_2 import *
 from plot_ode_functions_2 import *
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
@@ -11,7 +12,7 @@ n_space_steps = 10                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 1000
 height_of_interest = 3
-n_features = 4
+n_features = 5
 
 ######################################### SETUP ########################################################################
 values_per_feature = n_space_steps * n_height_steps
@@ -22,13 +23,15 @@ moisture_gas_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_
 moisture_particle_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_particle_initial
 temp_gas_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
 temp_particle_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
+amorphous_material_initial = np.zeros((n_height_steps, n_space_steps)) + 1
 
 ########################################## COMPUTE #####################################################################
 initial_system = np.concatenate(
     [moisture_gas_initial_all.flatten(), moisture_particle_initial_all.flatten(),
-     temp_gas_initial.flatten(), temp_particle_initial.flatten()])
+     temp_gas_initial.flatten(), temp_particle_initial.flatten(), amorphous_material_initial.flatten()])
 
 n_rotations = int(max_time/rotation_time_interval)
+#n_rotations = 2
 n_time_outputs_per_rotation = int(resolution / n_rotations)
 discrete_time = discrete_time[0:(n_rotations*n_time_outputs_per_rotation)]
 print("Number of rotations are:", n_rotations)
@@ -36,7 +39,7 @@ print("Number of time outputs per rotation is:", n_time_outputs_per_rotation)
 print("Shape of time is:", discrete_time.shape)
 #print("Time is:", discrete_time)
 
-computed_system = np.zeros([n_rotations, n_time_outputs_per_rotation, 4 * values_per_feature])
+computed_system = np.zeros([n_rotations, n_time_outputs_per_rotation, n_features * values_per_feature])
 
 for rotation in range(n_rotations):
     print(rotation)
@@ -46,21 +49,23 @@ for rotation in range(n_rotations):
 
     #initial_system = average
     initial_system = computed_system[rotation, -1, :]
-    for feature in range(n_features):
-        avg = np.average(computed_system[rotation, -1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
-        initial_system[(feature * values_per_feature):((feature + 1) * values_per_feature)] = avg
+    # for feature in range(n_features):
+    #     avg = np.average(computed_system[rotation, -1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
+    #     initial_system[(feature * values_per_feature):((feature + 1) * values_per_feature)] = avg
 
 ########################################## SPLIT #######################################################################
 moisture_gas_vector = computed_system[:, :, 0:values_per_feature]
 moisture_particle_vector = computed_system[:, :, values_per_feature:(values_per_feature * 2)]
 temp_gas_vector = computed_system[:, :, (values_per_feature * 2):(values_per_feature * 3)]
 temp_particle_vector = computed_system[:, :, (values_per_feature * 3):(values_per_feature * 4)]
+amorphous_material_vector = computed_system[:, :, (values_per_feature * 4):(values_per_feature * 5)]
 
 moisture_gas_vector = moisture_gas_vector.reshape(-1, n_height_steps, n_space_steps)
 print("Shape moisture gas vector:", moisture_gas_vector.shape)
 moisture_particle_vector = moisture_particle_vector.reshape(-1, n_height_steps, n_space_steps)
 temp_gas_vector = temp_gas_vector.reshape(-1, n_height_steps, n_space_steps)
 temp_particle_vector = temp_particle_vector.reshape(-1, n_height_steps, n_space_steps)
+amorphous_material_vector = amorphous_material_vector.reshape(-1, n_height_steps, n_space_steps)
 
 ############################################ PLOT ######################################################################
 # Convert to easier-to-read units
@@ -88,9 +93,9 @@ print('Max temperature in gas is: {:.4f} degrees Celcius'.format(max_temp_gas - 
 print('Max temperature in particles is: {:.4f} degrees Celcius\n'.format(max_temp_particle - kelvin))
 
 plot_sections_over_time(
-    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
+    amorphous_material_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
-    moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
+    moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle) # moisture_gas_vector
 
 # plot_heatmap(
 #     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
