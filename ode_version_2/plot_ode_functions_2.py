@@ -30,7 +30,8 @@ def plot_sections_over_time(
         ax[step, 0].set_ylabel(f'Section {step + 1}                      ', rotation=0, size='large')
         ax[step, 0].plot(discrete_time, moisture_gas_vector[:, height_of_interest, step], c=moisture_color)
         patch = mpatches.Patch(color=moisture_color, label=f'Y {step}')
-        ax[step, 0].set_ylim(moisture_gas_initial_bed - epsilon, moisture_gas_initial_in + epsilon)
+        # ax[step, 0].set_ylim(moisture_gas_initial_bed - epsilon, moisture_gas_initial_in + epsilon)
+        ax[step, 0].set_ylim(-1 - epsilon, 2 + epsilon)
         ax[step, 0].hlines(moisture_gas_initial_bed, 0, discrete_time[-1], colors=initial_color,
                            linestyles=initial_line)
         ax[step, 0].text(hours * 4 / 5, moisture_gas_initial_bed + epsilon,
