@@ -7,17 +7,19 @@ import matplotlib.patches as mpatches
 from matplotlib.widgets import Slider
 
 def plot_sections_over_time(
-        moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
-        n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
-        moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle):
+        moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
+        height_of_interest, n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in,
+        moisture_particle_initial, moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle):
     epsilon = 0.001
     height_of_interest -= 1
-    fig, ax = plt.subplots(n_space_steps, 4, figsize=(20, 13))
-    fig.suptitle(f'Moisture & temperature in cylinder sections over time. Total time: {int(hours)} hours.', fontsize=16)
+    fig, ax = plt.subplots(n_space_steps, 5, figsize=(20, 13))
+    fig.suptitle(f'Moisture, temperature & amorphous material in cylinder sections over time. '
+                 f'Total time: {int(hours)} hours.', fontsize=16)
     ax[0, 0].set_title('Moisture Gas')
     ax[0, 1].set_title('Moisture Particle')
     ax[0, 2].set_title('Temp Gas')
     ax[0, 3].set_title('Temp Particle')
+    ax[0, 4].set_title('Amount amorphous')
 
     # Set styles
     moisture_color = 'navy'
@@ -25,13 +27,13 @@ def plot_sections_over_time(
     initial_line = 'dashed'
     initial_color = 'gray'
     saturated_color = 'lightcoral'
+    amorph_color = 'green'
 
     for step in range(n_space_steps):
         ax[step, 0].set_ylabel(f'Section {step + 1}                      ', rotation=0, size='large')
         ax[step, 0].plot(discrete_time, moisture_gas_vector[:, height_of_interest, step], c=moisture_color)
         patch = mpatches.Patch(color=moisture_color, label=f'Y {step}')
-        # ax[step, 0].set_ylim(moisture_gas_initial_bed - epsilon, moisture_gas_initial_in + epsilon)
-        ax[step, 0].set_ylim(-1 - epsilon, 2 + epsilon)
+        ax[step, 0].set_ylim(moisture_gas_initial_bed - epsilon, moisture_gas_initial_in + epsilon)
         ax[step, 0].hlines(moisture_gas_initial_bed, 0, discrete_time[-1], colors=initial_color,
                            linestyles=initial_line)
         ax[step, 0].text(hours * 4 / 5, moisture_gas_initial_bed + epsilon,
@@ -82,11 +84,18 @@ def plot_sections_over_time(
         ax[step, 3].text(hours * 4 / 5, max_temp_particle - 0.7,
                          ('{:.2f}'.format(max_temp_particle)), ha='left', va='center')
 
+
+        ax[step, 4].plot(discrete_time, amorphous_material_vector[:, height_of_interest, step], c=amorph_color)
+        ax[step, 4].set_ylim(-0.2, 1.2)
+        ax[step, 4].hlines(1, 0, discrete_time[-1], colors=initial_color, linestyles=initial_line)
+        ax[step, 4].hlines(0, 0, discrete_time[-1], colors=saturated_color, linestyles=initial_line)
+
         # ax[step, feature].legend(handles=[patch], loc="lower center")
         ax[step, 0].grid()
         ax[step, 1].grid()
         ax[step, 2].grid()
         ax[step, 3].grid()
+        ax[step, 4].grid()
     plt.savefig('system_over_time.pdf')
     plt.show()
 
@@ -131,20 +140,22 @@ def plot_heatmap(
     plt.show()
 
 def slide_heat_map(
-    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, temp_min, max_temp_particle,
-    max_temp_gas, moisture_particle_initial, moisture_particle_saturated, moisture_gas_initial_bed, moisture_gas_initial_in, hours):
+    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
+        temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_saturated,
+        moisture_gas_initial_bed, moisture_gas_initial_in, hours):
     # current layer index start with the first layer
     idx = 0
     time, height, length = np.shape(moisture_particle_vector)
 
     # figure axis setup
-    fig, ax = plt.subplots(2, 2, figsize=(20, 13))
+    fig, ax = plt.subplots(2, 3, figsize=(20, 13))
     fig.subplots_adjust(bottom=0.15)
 
     ax[0, 0].set_title('Moisture Gas')
     ax[0, 1].set_title('Moisture Particle')
     ax[1, 0].set_title('Temp Gas')
     ax[1, 1].set_title('Temp Particle')
+    ax[0, 2].set_title('Amorphous material')
 
     # display initial image
     im_y = ax[0, 0].imshow(moisture_gas_vector[idx, :, :], cmap='Blues', vmin=moisture_gas_initial_bed, vmax=moisture_gas_initial_in)
@@ -159,6 +170,9 @@ def slide_heat_map(
     im_tp = ax[1, 1].imshow(temp_particle_vector[idx, :, :], cmap='Reds', vmin=temp_min, vmax=max_temp_particle)
     fig.colorbar(im_tp, ax=ax[1, 1])
 
+    im_am = ax[0, 2].imshow(amorphous_material_vector[idx, :, :], cmap='Greens', vmin=0, vmax=1)
+    fig.colorbar(im_am, ax=ax[0, 2])
+
     # setup a slider axis and the Slider
     ax_depth = plt.axes([0.23, 0.02, 0.56, 0.04])
     slider_depth = Slider(ax_depth, 'Time', 0, time-1, valinit=0)
@@ -171,10 +185,29 @@ def slide_heat_map(
         im_y.set_data(moisture_gas_vector[idx, :, :])
         im_tp.set_data(temp_particle_vector[idx, :, :])
         im_tg.set_data(temp_gas_vector[idx, :, :])
+        im_am.set_data(amorphous_material_vector[idx, :, :])
         time_current = idx/time * hours
-        fig.suptitle(f'Moisture & temperature in cylinder at time: {int(time_current)} hours.',
+        fig.suptitle(f'Moisture, temperature & amorphous material in cylinder at time: {int(time_current)} hours.',
                      fontsize=16)
 
     slider_depth.on_changed(update_depth)
-    plt.savefig('heatmap_slider.pdf')
+    #plt.savefig('heatmap_slider.pdf')
     plt.show()
+
+
+def plot_average_temperature(avg_temperature, kelvin, time):
+    avg_temperature = avg_temperature - kelvin
+    #times = np.arange(0, avg_temperature.shape[0])
+    plt.plot(time, avg_temperature, color='crimson')
+    plt.title('Average temperature in powder over time')
+    plt.ylabel('Deg C')
+    plt.xlabel('Hours')
+    plt.show()
+
+def plot_average_moisture(avg_moisture, time):
+    plt.plot(time, avg_moisture, color='mediumblue')
+    plt.title('Average moisture content in powder over time')
+    plt.ylabel('Moisture')
+    plt.xlabel('Hours')
+    plt.show()
+

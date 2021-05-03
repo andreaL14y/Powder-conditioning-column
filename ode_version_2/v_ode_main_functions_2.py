@@ -1,6 +1,9 @@
 from input_parameters import*
 from v_ode_functions_2 import*
 from find_k_from_data import parameters
+import init_test
+init_test.initial_avg_temp()
+#print('Starting w avg_temp:', avg_temp_particle_vector)
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
 def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_steps):
@@ -10,6 +13,11 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     moisture_particle_vector = moisture_matrix[values_per_feature:(values_per_feature * 2)]
     temp_gas_vector = moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
     temp_particle_vector = moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
+    avg_temp_particle = np.average(temp_particle_vector)
+    #print(avg_temp_particle)
+
+    init_test.avg_temp_particle_vector = np.append(init_test.avg_temp_particle_vector, avg_temp_particle)
+    #print(avg_temp_particle_vector)
     amorphous_material_vector = moisture_matrix[(values_per_feature * 4):(values_per_feature * 5)]
 
     moisture_gas_vector = np.reshape(moisture_gas_vector, (n_height_steps, n_space_steps))
@@ -100,7 +108,7 @@ def compute_k_vector(temperature_vector, humidity_vector):
         for l in range(length_steps):
             temp = temperature_vector[h, l]
             rh = humidity_vector[h, l]
-            if temp < 40:
+            if temp < 40 + kelvin:
                 if rh < 55:
                     starting_point, k_parameter, rest = parameters[0]
                 else:
@@ -110,6 +118,7 @@ def compute_k_vector(temperature_vector, humidity_vector):
                     starting_point, k_parameter, rest = parameters[2]
                 else:
                     starting_point, k_parameter, rest = parameters[3]
+            k_parameter /= 60 * 60 #* 7 * 24                                         # Unit transformed from 1/h to 1/s
             parameters_vector[h, l, :] = starting_point, k_parameter, rest
     return parameters_vector
 
