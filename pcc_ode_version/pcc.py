@@ -71,7 +71,7 @@ class Ui_pcc(object):
         self.label_32.setObjectName("label_32")
         self.formLayout_4.setWidget(10, QtWidgets.QFormLayout.LabelRole, self.label_32)
         self.relative_humidity_gas_initial = QtWidgets.QLineEdit(pcc)
-        self.relative_humidity_gas_initial.setObjectName("relative_humidity_gas_initial")
+        self.relative_humidity_gas_initial.setObjectName("relative_humidity_gas_inlet")
         self.formLayout_4.setWidget(10, QtWidgets.QFormLayout.FieldRole, self.relative_humidity_gas_initial)
         self.label_30 = QtWidgets.QLabel(pcc)
         self.label_30.setObjectName("label_30")
