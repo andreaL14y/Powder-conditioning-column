@@ -43,10 +43,9 @@ rotation_time_interval = 19 * 60                                                
 temp_initial = kelvin + 24                                                       # K, room temperature 20 degrees
 temp_walls = kelvin + 24                                                         # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                              # humidity in bed, starting condition
-# relative_humidity_gas_initial = 0.9                                              # humidity of flowing gas
-relative_humidity_gas_initial = 0.45                                             # humidity of flowing gas
+# relative_humidity_gas_inlet = 0.9                                              # humidity of flowing gas
+relative_humidity_gas_inlet = 0.45                                             # humidity of flowing gas
 relative_humidity_gas_end = 0.2                                                  # humidity at end of cylinder
 pressure_ambient = 101325                                                        # atmospheric pressure, Pa
 
 mass_powder = porosity_powder * particle_density * bed_length * (column_diameter/2)**2 * 1000
-print("Mass powder is:", mass_powder, "g")
