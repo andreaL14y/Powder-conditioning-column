@@ -217,15 +217,15 @@ flow_rate = volumetric_flow_rate_m3_per_second(volumetric_flow_rate_liters_per_m
 superficial_velocity = flow_rate/(np.pi*(column_diameter/2)**2)                         # superficial velocity U in m/s
 
 pressure_saturated_initial = compute_p_saturated_vector(temp_initial)
-partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_initial
+partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidity_gas_inlet
 molar_concentration_moisture_initial = compute_molar_concentration_vector(
-    relative_humidity_gas_initial, pressure_saturated_initial, temp_initial)
+    relative_humidity_gas_inlet, pressure_saturated_initial, temp_initial)
 
 moisture_gas_initial_bed = compute_Y_from_RH(relative_humidity_bed_initial, pressure_saturated_initial)
-moisture_gas_initial_in = compute_Y_from_RH(relative_humidity_gas_initial, pressure_saturated_initial)
+moisture_gas_initial_in = compute_Y_from_RH(relative_humidity_gas_inlet, pressure_saturated_initial)
 moisture_gas_end = compute_Y_from_RH(relative_humidity_gas_end, pressure_saturated_initial)
 moisture_particle_initial = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
-moisture_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_initial)
+moisture_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_inlet)
 
 k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_moisture_initial)[3]
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
