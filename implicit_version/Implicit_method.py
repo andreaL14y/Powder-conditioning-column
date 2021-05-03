@@ -23,7 +23,7 @@ pressure_saturated = np.zeros(number_measure_points)+pressure_saturated_initial
 
 ############### INITIAL PARAMETERS THAT CHANGE INDIRECTLY WITH THE TEMPERATURE #################
 molar_concentration_moisture = np.zeros(number_measure_points)+molar_concentration_moisture_initial #dep. on moisture_density
-relative_humidity = np.zeros(number_measure_points)+relative_humidity_gas_initial #dep. on pressure saturated
+relative_humidity = np.zeros(number_measure_points) + relative_humidity_gas_inlet #dep. on pressure saturated
 partial_pressure_moisture = np.zeros(number_measure_points)+partial_pressure_moisture_initial #dep. on pressure saturated and RH_gas
 
 ################ INITIAL PARAMETERS THAT CHANGE WITH MOISTURE & TEMPERATURE (PARTICLE/GAS)#####
