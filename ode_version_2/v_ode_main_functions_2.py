@@ -1,22 +1,27 @@
 from input_parameters import*
 from v_ode_functions_2 import*
-from find_k_from_data import parameters
-import init_test
-init_test.initial_avg_temp()
+from find_k_from_data import crystallization_parameters, glass_transition_param_1, glass_transition_param_2, \
+    glass_transition_curve, crystallization_speed_curves
+# import init_test
+# init_test.initial_avg_temp()
 #print('Starting w avg_temp:', avg_temp_particle_vector)
+counter = 0
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
 def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_steps):
     values_per_feature = n_space_steps * n_height_steps
+    global counter
+    counter += 1
 
+    ################################### CREATE ALL MATRICES ############################################################
     moisture_gas_vector = moisture_matrix[0:values_per_feature]
     moisture_particle_vector = moisture_matrix[values_per_feature:(values_per_feature * 2)]
     temp_gas_vector = moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
     temp_particle_vector = moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
-    avg_temp_particle = np.average(temp_particle_vector)
+    # avg_temp_particle = np.average(temp_particle_vector)
     #print(avg_temp_particle)
 
-    init_test.avg_temp_particle_vector = np.append(init_test.avg_temp_particle_vector, avg_temp_particle)
+    # init_test.avg_temp_particle_vector = np.append(init_test.avg_temp_particle_vector, avg_temp_particle)
     #print(avg_temp_particle_vector)
     amorphous_material_vector = moisture_matrix[(values_per_feature * 4):(values_per_feature * 5)]
 
@@ -26,7 +31,17 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     temp_particle_vector = np.reshape(temp_particle_vector, (n_height_steps, n_space_steps))
     amorphous_material_vector = np.reshape(amorphous_material_vector, (n_height_steps, n_space_steps))
     amorphous_material_vector[amorphous_material_vector < 0] = 0
-    #print('Am vector[0, 0]:', amorphous_material_vector[0,0])
+
+    ############################# CHECK GLASS TRANSITION TEMP ##########################################################
+    glass_transition_temps = glass_transition_curve(
+        1 - moisture_particle_vector, glass_transition_param_1, glass_transition_param_2) + kelvin
+    temp_glass_temp_diff = temp_particle_vector - glass_transition_temps
+    if counter % 1000 == 0:
+        print("\nCounter:", counter)
+        print(f"T, Tg, T - Tg in middle row, first col: {temp_particle_vector[2, 0] - kelvin:.2f}, {glass_transition_temps[2, 0] - kelvin:.2f}, {temp_glass_temp_diff[2, 0]:.2f}")
+
+        #f'\nT 20, RH 30:'.ljust(tabs), f' [{params[0, 0]:.2f},           {params[0, 1]:.2f},        {params[0, 2]:.2f}]'
+
 
     ##################################### UPDATE PARAMETERS ############################################################
     equilibrium_state = compute_equilibrium_moisture_vector(moisture_particle_vector)
@@ -110,14 +125,14 @@ def compute_k_vector(temperature_vector, humidity_vector):
             rh = humidity_vector[h, l]
             if temp < 40 + kelvin:
                 if rh < 55:
-                    starting_point, k_parameter, rest = parameters[0]
+                    starting_point, k_parameter, rest = crystallization_parameters[0]
                 else:
-                    starting_point, k_parameter, rest = parameters[1]
+                    starting_point, k_parameter, rest = crystallization_parameters[1]
             else:
                 if rh < 55:
-                    starting_point, k_parameter, rest = parameters[2]
+                    starting_point, k_parameter, rest = crystallization_parameters[2]
                 else:
-                    starting_point, k_parameter, rest = parameters[3]
+                    starting_point, k_parameter, rest = crystallization_parameters[3]
             k_parameter /= 60 * 60 #* 7 * 24                                         # Unit transformed from 1/h to 1/s
             parameters_vector[h, l, :] = starting_point, k_parameter, rest
     return parameters_vector
