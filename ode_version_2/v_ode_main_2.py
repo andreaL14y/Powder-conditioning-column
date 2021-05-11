@@ -9,12 +9,14 @@ import init_test
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
 max_time = 400000                       # seconds
-max_time = 2.5 * 60 * 60                       # seconds
+max_time = 2.5 * 60 * 60                # hours to seconds
 n_space_steps = 10                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 1000
 height_of_interest = 3
 n_features = 5
+n_rotations = int(max_time/rotation_time_interval)
+n_rotations = 0
 
 ######################################### SETUP ########################################################################
 values_per_feature = n_space_steps * n_height_steps
@@ -32,41 +34,59 @@ initial_system = np.concatenate(
     [moisture_gas_initial_all.flatten(), moisture_particle_initial_all.flatten(),
      temp_gas_initial.flatten(), temp_particle_initial.flatten(), amorphous_material_initial.flatten()])
 
-n_rotations = int(max_time/rotation_time_interval)
-n_time_outputs_per_rotation = int(resolution / n_rotations)
-discrete_time = discrete_time[0:(n_rotations*n_time_outputs_per_rotation)]
-
-computed_system = np.zeros([n_rotations, n_time_outputs_per_rotation, n_features * values_per_feature])
+if n_rotations > 0:
+    n_time_outputs_per_rotation = int(resolution / n_rotations)
+    discrete_time = discrete_time[0:(n_rotations*n_time_outputs_per_rotation)]
+    computed_system = np.zeros([n_rotations, n_time_outputs_per_rotation, n_features * values_per_feature])
+else:
+    computed_system = np.zeros([resolution, n_features * values_per_feature])
 
 tabs = 40
 print('\n       ***        STARTING COMPUTATION       ***        ')
+params = crystallization_parameters
 print(f'Parameters are:'.ljust(tabs), '[starting_point, k_parameter, rest]',
-      f'\nT 20, RH 30:'.ljust(tabs), f' [{parameters[0, 0]:.2f},           {parameters[0, 1]:.2f},        {parameters[0, 2]:.2f}]',
-      f'\nT 20, RH 80:'.ljust(tabs), f' [{parameters[1, 0]:.2f},           {parameters[1, 1]:.2f},        {parameters[1, 2]:.2f}]',
-      f'\nT 60, RH 30:'.ljust(tabs), f' [{parameters[2, 0]:.2f},           {parameters[2, 1]:.2f},        {parameters[2, 2]:.2f}]',
-      f'\nT 60, RH 60:'.ljust(tabs), f' [{parameters[3, 0]:.2f},           {parameters[3, 1]:.2f},        {parameters[3, 2]:.2f}]\n')
+      f'\nT 20, RH 30:'.ljust(tabs), f' [{params[0, 0]:.2f},           {params[0, 1]:.2f},        {params[0, 2]:.2f}]',
+      f'\nT 20, RH 80:'.ljust(tabs), f' [{params[1, 0]:.2f},           {params[1, 1]:.2f},        {params[1, 2]:.2f}]',
+      f'\nT 60, RH 30:'.ljust(tabs), f' [{params[2, 0]:.2f},           {params[2, 1]:.2f},        {params[2, 2]:.2f}]',
+      f'\nT 60, RH 60:'.ljust(tabs), f' [{params[3, 0]:.2f},           {params[3, 1]:.2f},        {params[3, 2]:.2f}]\n')
 
-for rotation in range(n_rotations):
-    print('Computing rotation:'.ljust(tabs), rotation + 1, '/', n_rotations)
-    #print(init_test.avg_temp_particle_vector)
-    start_time = rotation * rotation_time_interval
-    discrete_time_division = np.linspace(start_time, start_time + rotation_time_interval, n_time_outputs_per_rotation)
-    computed_system[rotation, :] = odeint(conditioning_column, initial_system, discrete_time_division,
-                                          args=(space_step_size, n_space_steps, n_height_steps))
-    #print(init_test.avg_temp_particle_vector)
-    ################### initial_system = average ###################
-    initial_system = computed_system[rotation, -1, :]
+#previous_temp_powder = temp_particle_initial
+if n_rotations > 0:
+    for rotation in range(n_rotations):
+        print('Computing rotation:'.ljust(tabs), rotation + 1, '/', n_rotations)
+
+        start_time = rotation * rotation_time_interval
+        discrete_time_division = np.linspace(start_time, start_time + rotation_time_interval, n_time_outputs_per_rotation)
+        computed_system[rotation, :] = odeint(conditioning_column, initial_system, discrete_time_division,
+                                              args=(space_step_size, n_space_steps, n_height_steps))
+        #current_temp_powder = computed_system[rotation, -1, (values_per_feature * 3):(values_per_feature * 4)]
+        #diff_temp_powder = current_temp_powder - previous_temp_powder
+        #previous_temp_powder = current_temp_powder
+        ################### initial_system = average ###################
+        initial_system = computed_system[rotation, -1, :]
+        for feature in range(n_features):
+            avg = np.average(computed_system[rotation, -1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
+            initial_system[(feature * values_per_feature):((feature + 1) * values_per_feature)] = avg
+else:
+    computed_system = odeint(conditioning_column, initial_system, discrete_time,
+                             args=(space_step_size, n_space_steps, n_height_steps))
     for feature in range(n_features):
-        avg = np.average(computed_system[rotation, -1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
-        initial_system[(feature * values_per_feature):((feature + 1) * values_per_feature)] = avg
+        avg = np.average(computed_system[-1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
 
 print('       ***        COMPUTATION COMPLETE       ***        \n')
 ########################################## SPLIT #######################################################################
-moisture_gas_vector = computed_system[:, :, 0:values_per_feature]
-moisture_particle_vector = computed_system[:, :, values_per_feature:(values_per_feature * 2)]
-temp_gas_vector = computed_system[:, :, (values_per_feature * 2):(values_per_feature * 3)]
-temp_particle_vector = computed_system[:, :, (values_per_feature * 3):(values_per_feature * 4)]
-amorphous_material_vector = computed_system[:, :, (values_per_feature * 4):(values_per_feature * 5)]
+if n_rotations > 0:
+    moisture_gas_vector = computed_system[:, :, 0:values_per_feature]
+    moisture_particle_vector = computed_system[:, :, values_per_feature:(values_per_feature * 2)]
+    temp_gas_vector = computed_system[:, :, (values_per_feature * 2):(values_per_feature * 3)]
+    temp_particle_vector = computed_system[:, :, (values_per_feature * 3):(values_per_feature * 4)]
+    amorphous_material_vector = computed_system[:, :, (values_per_feature * 4):(values_per_feature * 5)]
+else:
+    moisture_gas_vector = computed_system[:, 0:values_per_feature]
+    moisture_particle_vector = computed_system[:, values_per_feature:(values_per_feature * 2)]
+    temp_gas_vector = computed_system[:, (values_per_feature * 2):(values_per_feature * 3)]
+    temp_particle_vector = computed_system[:, (values_per_feature * 3):(values_per_feature * 4)]
+    amorphous_material_vector = computed_system[:, (values_per_feature * 4):(values_per_feature * 5)]
 
 moisture_gas_vector = moisture_gas_vector.reshape(-1, n_height_steps, n_space_steps)
 moisture_particle_vector = moisture_particle_vector.reshape(-1, n_height_steps, n_space_steps)
@@ -75,7 +95,12 @@ temp_particle_vector = temp_particle_vector.reshape(-1, n_height_steps, n_space_
 amorphous_material_vector = amorphous_material_vector.reshape(-1, n_height_steps, n_space_steps)
 np.save('amorphous_material', amorphous_material_vector)
 
-avg_amorphous_material = np.average(computed_system[-1, -1, (4 * values_per_feature):(5 * values_per_feature)])
+if n_rotations > 0:
+    avg_amorphous_material = np.average(computed_system[-1, -1, (4 * values_per_feature):(5 * values_per_feature)])
+else:
+    avg_amorphous_material = np.average(computed_system[ -1, (4 * values_per_feature):(5 * values_per_feature)])
+
+diff_heat_flow_powder = (temp_particle_vector[1:, :, :] - temp_particle_vector[:-1, :, :]) * particle_heat_capacity
 
 ############################################ PLOT ######################################################################
 # Convert to easier-to-read units
@@ -120,9 +145,12 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 #print('Avg:', init_test.avg_temp_particle_vector)
 
 
-plot_average_temperature(average_temp_particles, kelvin, discrete_time)
+#plot_average_temperature(average_temp_particles, kelvin, discrete_time)
 
-plot_average_moisture(average_moisture_particles, discrete_time)
+#plot_average_moisture(average_moisture_particles, discrete_time)
+
+plot_heat_flow(diff_heat_flow_powder, discrete_time, hours)
+#plot_heat_flow_slider(diff_heat_flow_powder, discrete_time, hours)
 
 # plot_sections_over_time(
 #     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
