@@ -211,3 +211,40 @@ def plot_average_moisture(avg_moisture, time):
     plt.xlabel('Hours')
     plt.show()
 
+def plot_heat_flow(heat_flow, time, hours):
+    time = time[1:]
+    heat_flow_middle = heat_flow[:, 2, 4]
+    plt.plot(time, heat_flow_middle, color='red')
+
+    plt.title('Heat flow from powder over time, middle of cylinder')
+    plt.ylabel('Heat flow [J/(g)]')
+    plt.xlabel('Hours')
+    plt.show()
+
+def plot_heat_flow_slider(heat_flow, time, hours):
+    time = time[1:]
+    idx = 0
+    time, height, length = np.shape(heat_flow)
+
+    # figure axis setup
+
+    # display initial image
+    im_x = plt.imshow(heat_flow[idx, :, :], cmap='Blues')
+    plt.colorbar(im_x)
+
+    # setup a slider axis and the Slider
+    ax_depth = plt.axes([0.23, 0.02, 0.56, 0.04])
+    slider_depth = Slider(ax_depth, 'Time', 0, time - 1, valinit=0)
+
+    plt.suptitle(f'Moisture & temperature in cylinder at time: {int(idx)} hours.', fontsize=16)
+
+    # update the figure with a change on the slider
+    def update_depth(val):
+        idx = int(round(slider_depth.val))
+        im_x.set_data(heat_flow[idx, :, :])
+        time_current = idx / time * hours
+        plt.suptitle(f'Heat flow in cylinder at time: {int(time_current)} hours.', fontsize=16)
+
+    slider_depth.on_changed(update_depth)
+    # plt.savefig('heatmap_slider.pdf')
+    plt.show()
