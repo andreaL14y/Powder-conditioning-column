@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from v_ode_functions_2 import *
 from v_ode_main_functions_2 import *
 from plot_ode_functions_2 import *
-import init_test
+import time
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
 max_time = 400000                       # seconds
@@ -27,12 +27,12 @@ moisture_gas_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_
 moisture_particle_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_particle_initial
 temp_gas_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
 temp_particle_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
-amorphous_material_initial = np.zeros((n_height_steps, n_space_steps)) + 1
+amorphous_material_initial_all = np.zeros((n_height_steps, n_space_steps)) + amorphous_material_initial
 
 ########################################## COMPUTE #####################################################################
 initial_system = np.concatenate(
     [moisture_gas_initial_all.flatten(), moisture_particle_initial_all.flatten(),
-     temp_gas_initial.flatten(), temp_particle_initial.flatten(), amorphous_material_initial.flatten()])
+     temp_gas_initial.flatten(), temp_particle_initial.flatten(), amorphous_material_initial_all.flatten()])
 
 if n_rotations > 0:
     n_time_outputs_per_rotation = int(resolution / n_rotations)
@@ -43,6 +43,8 @@ else:
 
 tabs = 40
 print('\n       ***        STARTING COMPUTATION       ***        ')
+run_time_start = time.time()
+
 params = crystallization_parameters
 print(f'Parameters are:'.ljust(tabs), '[starting_point, k_parameter, rest]',
       f'\nT 20, RH 30:'.ljust(tabs), f' [{params[0, 0]:.2f},           {params[0, 1]:.2f},        {params[0, 2]:.2f}]',
@@ -73,7 +75,9 @@ else:
     for feature in range(n_features):
         avg = np.average(computed_system[-1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
 
-print('       ***        COMPUTATION COMPLETE       ***        \n')
+elapsed = time.time() - run_time_start
+print(f'       ***        COMPUTATION COMPLETE IN {elapsed:.2f} SECONDS       ***        \n')
+
 ########################################## SPLIT #######################################################################
 if n_rotations > 0:
     moisture_gas_vector = computed_system[:, :, 0:values_per_feature]
@@ -149,7 +153,7 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 
 #plot_average_moisture(average_moisture_particles, discrete_time)
 
-plot_heat_flow(diff_heat_flow_powder, discrete_time, hours)
+# plot_heat_flow(diff_heat_flow_powder, discrete_time, hours)
 #plot_heat_flow_slider(diff_heat_flow_powder, discrete_time, hours)
 
 # plot_sections_over_time(
@@ -162,9 +166,9 @@ plot_heat_flow(diff_heat_flow_powder, discrete_time, hours)
 #     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
 #     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
 #
-# slide_heat_map(
-#     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
-#     temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_saturated,
-#     moisture_gas_initial_bed, moisture_gas_initial_in, hours)
+slide_heat_map(
+    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
+    temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_saturated,
+    moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours)
 
 print('\n############################################ PROGRAM ENDED ############################################')
