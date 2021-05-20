@@ -60,16 +60,3 @@ p0 = (-135, -1) # start with values near those we expect
 params, cv = scipy.optimize.curve_fit(glass_transition_curve, weight_fraction_lactose, temperature, p0)
 glass_transition_param_1, glass_transition_param_2 = params
 
-
-# plot the results
-# plt.plot(weight_fraction_lactose, temperature, '.', label="data")
-# plt.plot(weight_fraction_lactose, glass_transition_curve(weight_fraction_lactose, glass_transition_param_1, glass_transition_param_2), '--', label="fitted")
-# plt.title("Fitted Exponential Curve")
-#
-# x2 = np.linspace(0, 1, 100)
-# y2 = glass_transition_curve(x2, glass_transition_param_1, glass_transition_param_2)
-# plt.plot(x2, y2)
-#
-# plt.show()
-# inspect the parameters
-# print(f"Y = {m} + 1/(e^(-{t} * x))")
