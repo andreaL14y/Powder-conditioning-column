@@ -1,10 +1,7 @@
 from input_parameters import*
 from v_ode_functions_2 import*
-from find_k_from_data import crystallization_parameters, glass_transition_param_1, glass_transition_param_2, \
-    glass_transition_curve, crystallization_speed_curves
-# import init_test
-# init_test.initial_avg_temp()
-#print('Starting w avg_temp:', avg_temp_particle_vector)
+from find_k_from_data import crystallization_parameters, crystallization_speed_curves
+from glass_transition_curve import glass_temp_mix, glass_temp_lactose, glass_temp_water_1, glass_temp_water_2
 counter = 0
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
@@ -18,11 +15,6 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     moisture_particle_vector = moisture_matrix[values_per_feature:(values_per_feature * 2)]
     temp_gas_vector = moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
     temp_particle_vector = moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
-    # avg_temp_particle = np.average(temp_particle_vector)
-    #print(avg_temp_particle)
-
-    # init_test.avg_temp_particle_vector = np.append(init_test.avg_temp_particle_vector, avg_temp_particle)
-    #print(avg_temp_particle_vector)
     amorphous_material_vector = moisture_matrix[(values_per_feature * 4):(values_per_feature * 5)]
 
     moisture_gas_vector = np.reshape(moisture_gas_vector, (n_height_steps, n_space_steps))
@@ -33,18 +25,15 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     amorphous_material_vector[amorphous_material_vector < 0] = 0
 
     ############################# CHECK GLASS TRANSITION TEMP ##########################################################
-    glass_transition_temps = glass_transition_curve(
-        1 - moisture_particle_vector, glass_transition_param_1, glass_transition_param_2) + kelvin
-    temp_glass_temp_diff = temp_particle_vector - glass_transition_temps
-    if counter % 1000 == 0:
+    glass_transition_temp_vector = glass_temp_mix(1 - moisture_particle_vector, glass_temp_lactose, glass_temp_water_1)
+    temp_glass_temp_diff = temp_particle_vector - glass_transition_temp_vector
+    if counter % 2500 == 0:
         print("\nCounter:", counter)
-        print(f"T, Tg, T - Tg in middle row, first col: {temp_particle_vector[2, 0] - kelvin:.2f}, {glass_transition_temps[2, 0] - kelvin:.2f}, {temp_glass_temp_diff[2, 0]:.2f}")
-
-        #f'\nT 20, RH 30:'.ljust(tabs), f' [{params[0, 0]:.2f},           {params[0, 1]:.2f},        {params[0, 2]:.2f}]'
-
+        print(f"T, Tg, T - Tg in middle row, first col: {temp_particle_vector[2, 0] - kelvin:.2f}, "
+              f"{glass_transition_temp_vector[2, 0] - kelvin:.2f}, {temp_glass_temp_diff[2, 0]:.2f}")
 
     ##################################### UPDATE PARAMETERS ############################################################
-    equilibrium_state = compute_equilibrium_moisture_vector(moisture_particle_vector)
+    equilibrium_state = compute_equilibrium_moisture_vector(moisture_particle_vector, amorphous_material_vector)
     pressure_saturated = compute_p_saturated_vector(temp_gas_vector)
     relative_humidity = compute_relative_humidity_from_Y_vector(moisture_gas_vector, pressure_saturated)
     molar_concentration_moisture = compute_molar_concentration_vector(
@@ -96,8 +85,9 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
                            particle_heat_capacity
 
     ############################## UPDATE AMORPHOUS MATERIAL ###########################################################
-    change_amorphous_material = compute_amorphicity(moisture_particle_vector, temp_particle_vector, amorphous_material_vector)
-    #print(change_amorphous_material)
+    change_amorphous_material = compute_amorphicity(
+        moisture_particle_vector, temp_particle_vector, amorphous_material_vector, glass_transition_temp_vector)
+
     ##################################### CONCATENATE ##################################################################
     moisture_matrix_updated = np.concatenate([change_m_gas.flatten(), change_m_particle.flatten(),
                                               change_temp_gas.flatten(), change_temp_particle.flatten(),
@@ -106,24 +96,27 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
 
 
 ######################################### RECURRENT ####################################################################
-def compute_amorphicity(moisture_particle_vector, temp_particle_vector, amorphous_material_vector):
-    k_vector = compute_k_vector(temp_particle_vector, moisture_particle_vector)
-    #print('k vector is:', k_vector[:, :, 1])
+def compute_amorphicity(
+        moisture_particle_vector, temp_particle_vector, amorphous_material_vector, glass_transition_temp_vector):
 
-    amorphous_material_vector = - k_vector[:, :, 1] * amorphous_material_vector
+    # Only change if above Tg
+    k_parameter = compute_k_vector(temp_particle_vector, moisture_particle_vector, glass_transition_temp_vector)[:, :, 1]
+    k_parameter[glass_transition_temp_vector > temp_particle_vector] = 0
+    change_amorphous_material = - k_parameter * amorphous_material_vector
 
-    # amorphous_material_vector[amorphous_material_vector < 0] = 0
-    return amorphous_material_vector
+    return change_amorphous_material
 
 
-def compute_k_vector(temperature_vector, humidity_vector):
+def compute_k_vector(temperature_vector, humidity_vector, glass_transition_temp_vector):
     height_steps, length_steps = temperature_vector.shape
     parameters_vector = np.zeros((height_steps, length_steps, 3))
     for h in range(height_steps):
         for l in range(length_steps):
             temp = temperature_vector[h, l]
             rh = humidity_vector[h, l]
-            if temp < 40 + kelvin:
+            if temp < glass_transition_temp_vector[h, l]:
+                starting_point, k_parameter, rest = 0, 0, 0
+            elif temp < 40 + kelvin:
                 if rh < 55:
                     starting_point, k_parameter, rest = crystallization_parameters[0]
                 else:
@@ -133,7 +126,8 @@ def compute_k_vector(temperature_vector, humidity_vector):
                     starting_point, k_parameter, rest = crystallization_parameters[2]
                 else:
                     starting_point, k_parameter, rest = crystallization_parameters[3]
-            k_parameter /= 60 * 60 #* 7 * 24                                         # Unit transformed from 1/h to 1/s
+            k_parameter /= 60 * 60 #* 7 * 24                                     # Unit transformed from 1/h to 1/s
+
             parameters_vector[h, l, :] = starting_point, k_parameter, rest
     return parameters_vector
 
