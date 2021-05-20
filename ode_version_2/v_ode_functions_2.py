@@ -34,16 +34,13 @@ def compute_heat_transfer_coefficient(molar_concentration_moisture):
 
 
 ######################################### RECURRENT ####################################################################
-def compute_equilibrium_moisture_vector(moisture_particle_vector):
+def compute_equilibrium_moisture_vector(moisture_particle_vector, amorphous_material_vector):
     rows, cols = np.shape(moisture_particle_vector)
-    f_of_x = np.zeros((rows, cols))
-    for r in range(rows):
-        for c in range(cols):
-            if moisture_particle_vector[r, c] < 1/alpha_parameter:
-                f_of_x[r, c] = alpha_parameter * moisture_particle_vector[r, c]
-            else:
-                f_of_x[r, c] = 1 - np.exp(-alpha_parameter * moisture_particle_vector[r, c] ** N)
-    return f_of_x
+
+    crystalline_part_eq = (1 - amorphous_material_vector) * (1 - np.exp(-alpha_parameter * moisture_particle_vector ** N))
+    amorph_part_eq = amorphous_material_vector * crystalline_part_eq / 100  # 100 times more absorption amorph
+    equilibrium_air = crystalline_part_eq + amorph_part_eq
+    return equilibrium_air
 
 
 def compute_p_saturated_vector(temp_kelvin_vector):
@@ -105,6 +102,8 @@ moisture_gas_initial_in = compute_Y_from_RH(relative_humidity_gas_inlet, pressur
 moisture_gas_end = compute_Y_from_RH(relative_humidity_gas_end, pressure_saturated_initial)
 moisture_particle_initial = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
 moisture_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_inlet)
+print('Initial moisture powder:', moisture_particle_initial)
+print('Saturated moisture powder:', moisture_particle_saturated)
 
 k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_moisture_initial)[3]
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
