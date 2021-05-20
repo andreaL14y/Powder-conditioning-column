@@ -142,7 +142,7 @@ def plot_heatmap(
 def slide_heat_map(
     moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
         temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_saturated,
-        moisture_gas_initial_bed, moisture_gas_initial_in, hours):
+        moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours):
     # current layer index start with the first layer
     idx = 0
     time, height, length = np.shape(moisture_particle_vector)
@@ -170,7 +170,7 @@ def slide_heat_map(
     im_tp = ax[1, 1].imshow(temp_particle_vector[idx, :, :], cmap='Reds', vmin=temp_min, vmax=max_temp_particle)
     fig.colorbar(im_tp, ax=ax[1, 1])
 
-    im_am = ax[0, 2].imshow(amorphous_material_vector[idx, :, :], cmap='Greens', vmin=0, vmax=1)
+    im_am = ax[0, 2].imshow(amorphous_material_vector[idx, :, :], cmap='Greens', vmin=0, vmax=amorphous_material_initial)
     fig.colorbar(im_am, ax=ax[0, 2])
 
     # setup a slider axis and the Slider
