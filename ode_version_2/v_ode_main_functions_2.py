@@ -1,7 +1,7 @@
 from input_parameters import*
 from v_ode_functions_2 import*
 from find_k_from_data import crystallization_parameters, crystallization_speed_curves
-from glass_transition_curve import glass_temp_mix, glass_temp_lactose, glass_temp_water_1, glass_temp_water_2
+from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1, glass_temp_water_2
 counter = 0
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
@@ -11,24 +11,15 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     counter += 1
 
     ################################### CREATE ALL MATRICES ############################################################
-    moisture_gas_vector =               moisture_matrix[0:values_per_feature]
-    moisture_particle_cryst_vector =    moisture_matrix[values_per_feature:(values_per_feature * 2)]
-    moisture_particle_am_vector =       moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
-    temp_gas_vector =                   moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
-    temp_particle_vector =              moisture_matrix[(values_per_feature * 4):(values_per_feature * 5)]
-    amorphous_material_vector =         moisture_matrix[(values_per_feature * 5):(values_per_feature * 6)]
+    moisture_gas_vector, moisture_particle_cryst_vector, moisture_particle_am_vector, temp_gas_vector, \
+    temp_particle_vector, amorphous_material_vector = create_matrices(
+        moisture_matrix, values_per_feature, n_height_steps, n_space_steps)
 
-    moisture_gas_vector =               np.reshape(moisture_gas_vector, (n_height_steps, n_space_steps))
-    moisture_particle_cryst_vector =    np.reshape(moisture_particle_cryst_vector, (n_height_steps, n_space_steps))
-    moisture_particle_am_vector =       np.reshape(moisture_particle_am_vector, (n_height_steps, n_space_steps))
-    temp_gas_vector =                   np.reshape(temp_gas_vector, (n_height_steps, n_space_steps))
-    temp_particle_vector =              np.reshape(temp_particle_vector, (n_height_steps, n_space_steps))
-    amorphous_material_vector =         np.reshape(amorphous_material_vector, (n_height_steps, n_space_steps))
-    amorphous_material_vector[amorphous_material_vector < 0] = 0
 
-    ############################# CHECK GLASS TRANSITION TEMP ##########################################################
-    glass_transition_temp_vector = glass_temp_mix(1 - moisture_particle_am_vector, glass_temp_lactose, glass_temp_water_1)
+    ##################################### CREATE T_G MATRIX ############################################################
+    glass_transition_temp_vector = compute_glass_temp_mix(1 - moisture_particle_am_vector, glass_temp_lactose, glass_temp_water_1)
     temp_glass_temp_diff = temp_particle_vector - glass_transition_temp_vector
+
 
     ##################################### UPDATE PARAMETERS ############################################################
     pressure_saturated = compute_p_saturated_vector(temp_gas_vector)
@@ -58,6 +49,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
         temp_particle_vector, space_step, temp_initial, boundary_condition_L=temp_initial,
         boundary_condition_wall=temp_walls, temperature=True)
 
+
     ##################################### UPDATE MOISTURE ##############################################################
     change_m_diffusion_gas = moisture_diffusivity * gas_density * (1 - porosity_powder) * laplacian_moisture_gas
     change_m_absorption_gas = - constant * particle_density * porosity_powder * (relative_humidity - equilibrium_state_cryst)
@@ -72,14 +64,20 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     change_m_particle_am = change_m_particle_am * amorphous_material_vector
 
 
+    ############################## UPDATE AMORPHOUS MATERIAL ###########################################################
+    change_amorphous_material = compute_amorphicity(
+        moisture_particle_am_vector, temp_particle_vector, amorphous_material_vector, glass_transition_temp_vector)
+
+
     ##################################### PRINT STUFF ##################################################################
-    if counter % 2500 == 0:
+    if counter % 10000 == 0:
         print("\nCounter:", counter)
         print(f"T, Tg, T - Tg in middle row, first col: {temp_particle_vector[2, 0] - kelvin:.2f}, "
               f"{glass_transition_temp_vector[2, 0] - kelvin:.2f}, {temp_glass_temp_diff[2, 0]:.2f}"
               f"\nMoisture am {moisture_particle_am_vector[2, 0]:.4f}\n"
               f"Moisture eq am {equilibrium_state_am[2, 0]:.4f}\n"
               f"RH {relative_humidity[2, 0]:.2}")
+        print(f"Time computed is {t/(3600):.3} h")
 
     ##################################### UPDATE TEMP ##################################################################
     conduction_gas = conductivity_gas * (1 - porosity_powder) * laplacian_temp_gas
@@ -94,13 +92,11 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     conduction_particle = conductivity_particle * laplacian_temp_particle / particle_density
     heat_of_sorption_particle = constant * (relative_humidity - equilibrium_state_cryst) * heat_of_vaporization
     heat_transfer_particle = heat_transfer_coefficient * specific_surface_area * (temp_gas_vector-temp_particle_vector)
+    heat_of_cryst_particle = heat_of_crystallization * change_amorphous_material
 
-    change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
+    change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle + heat_of_cryst_particle) / \
                            particle_heat_capacity
 
-    ############################## UPDATE AMORPHOUS MATERIAL ###########################################################
-    change_amorphous_material = compute_amorphicity(
-        moisture_particle_am_vector, temp_particle_vector, amorphous_material_vector, glass_transition_temp_vector)
 
     ##################################### CONCATENATE ##################################################################
     moisture_matrix_updated = np.concatenate([change_m_gas.flatten(), change_m_particle_cryst.flatten(),
@@ -117,7 +113,6 @@ def compute_amorphicity(
     k_parameter = compute_k_vector(temp_particle_vector, moisture_particle_am_vector, glass_transition_temp_vector)[:, :, 1]
     k_parameter[glass_transition_temp_vector > temp_particle_vector] = 0
     change_amorphous_material = - k_parameter * amorphous_material_vector
-
     return change_amorphous_material
 
 
@@ -194,6 +189,30 @@ def compute_laplacian_vector(vector, space_step, boundary_condition_0, boundary_
     laplacian /= (space_step ** 2)
     return laplacian
 
+
+def create_matrices(moisture_matrix, values_per_feature, n_height_steps, n_space_steps):
+    # n_features = len(moisture_matrix)/values_per_feature
+    # for f in range(n_features):
+    #     matrix = moisture_matrix[f * values_per_feature:(1 + f)*values_per_feature]
+    #     matrix = np.reshape(matrix, n_height_steps, n_space_steps)
+
+    moisture_gas_vector =               moisture_matrix[0:values_per_feature]
+    moisture_particle_cryst_vector =    moisture_matrix[values_per_feature:(values_per_feature * 2)]
+    moisture_particle_am_vector =       moisture_matrix[(values_per_feature * 2):(values_per_feature * 3)]
+    temp_gas_vector =                   moisture_matrix[(values_per_feature * 3):(values_per_feature * 4)]
+    temp_particle_vector =              moisture_matrix[(values_per_feature * 4):(values_per_feature * 5)]
+    amorphous_material_vector =         moisture_matrix[(values_per_feature * 5):(values_per_feature * 6)]
+
+    moisture_gas_vector =               np.reshape(moisture_gas_vector, (n_height_steps, n_space_steps))
+    moisture_particle_cryst_vector =    np.reshape(moisture_particle_cryst_vector, (n_height_steps, n_space_steps))
+    moisture_particle_am_vector =       np.reshape(moisture_particle_am_vector, (n_height_steps, n_space_steps))
+    temp_gas_vector =                   np.reshape(temp_gas_vector, (n_height_steps, n_space_steps))
+    temp_particle_vector =              np.reshape(temp_particle_vector, (n_height_steps, n_space_steps))
+    amorphous_material_vector =         np.reshape(amorphous_material_vector, (n_height_steps, n_space_steps))
+    amorphous_material_vector[amorphous_material_vector < 0] = 0
+    return moisture_gas_vector, moisture_particle_cryst_vector, moisture_particle_am_vector, temp_gas_vector, \
+           temp_particle_vector, amorphous_material_vector
+    
 ############################################## TESTING #################################################################
 # r, c = 2, 5
 # temp_vector = np.zeros((r, c)) + temp_initial
