@@ -35,10 +35,7 @@ def compute_heat_transfer_coefficient(molar_concentration_moisture):
 
 ######################################### RECURRENT ####################################################################
 def compute_equilibrium_moisture_vector(moisture_particle_vector):
-
     crystalline_part_eq = (1 - np.exp(-alpha_parameter * moisture_particle_vector ** N))
-    # amorph_part_eq = crystalline_part_eq / 100  # 100 times more absorption amorph
-    # equilibrium_air = crystalline_part_eq * (1 - amorphous_material_vector) + amorph_part_eq * amorphous_material_vector
     return crystalline_part_eq
 
 
@@ -112,9 +109,6 @@ moisture_gas_end = compute_Y_from_RH(relative_humidity_gas_end, pressure_saturat
 moisture_particle_initial = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
 moisture_cryst_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_inlet)
 moisture_am_particle_saturated = compute_equilibrium_moisture_am_vector(relative_humidity_gas_inlet)
-print('Initial moisture powder:', moisture_particle_initial)
-print(f'Saturated moisture powder: {moisture_cryst_particle_saturated:.2f}')
-print(f'Saturated moisture am powder: {moisture_am_particle_saturated:.2f}')
 
 k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_moisture_initial)[3]
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
