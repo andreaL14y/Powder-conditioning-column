@@ -43,6 +43,10 @@ else:
     computed_system = np.zeros([resolution, n_features * values_per_feature])
 
 tabs = 40
+print('Initial moisture powder:'.ljust(tabs), '{:.3f}'.format(moisture_particle_initial))
+print(f'Saturated moisture powder:'.ljust(tabs), '{:.3f}'.format(moisture_cryst_particle_saturated))
+print(f'Saturated moisture am powder:'.ljust(tabs), '{:.3f}'.format(moisture_am_particle_saturated))
+
 print('\n       ***        STARTING COMPUTATION       ***        ')
 run_time_start = time.time()
 
@@ -140,7 +144,8 @@ print('Max humidity gas:'.ljust(tabs), '{:.4f}'.format(max_moisture_gas))
 print('Saturated humidity gas at inlet:'.ljust(tabs), '{:.4f}'.format(moisture_gas_initial_in))
 print('Max humidity in particles:'.ljust(tabs), '{:.4f}'.format(max_moisture_particle))
 print('At time, height, length:'.ljust(tabs), max_moisture_particle_index[0], max_moisture_particle_index[1], max_moisture_particle_index[2])
-print('Saturated humidity particles:'.ljust(tabs), '{:.4f} \n'.format(moisture_particle_saturated))
+print('Saturated humidity cryst particles:'.ljust(tabs), '{:.4f}'.format(moisture_cryst_particle_saturated))
+print('Saturated humidity am particles:'.ljust(tabs), '{:.4f} \n'.format(moisture_am_particle_saturated))
 
 print('Max temperature gas:'.ljust(tabs), '{:.2f} degrees Celcius'.format(max_temp_gas - kelvin))
 print('Max temperature particles:'.ljust(tabs), '{:.2f} degrees Celcius\n'.format(max_temp_particle - kelvin))
@@ -168,8 +173,8 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 #     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
 #
 slide_heat_map(
-    moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
-    temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_saturated,
+    moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector, moisture_particle_am_vector,
+    temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_cryst_particle_saturated, moisture_am_particle_saturated,
     moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours)
 
 print('\n############################################ PROGRAM ENDED ############################################')
