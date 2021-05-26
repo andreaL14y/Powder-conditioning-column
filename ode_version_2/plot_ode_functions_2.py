@@ -140,28 +140,30 @@ def plot_heatmap(
     plt.show()
 
 def slide_heat_map(
-    moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
-        temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_saturated,
+    moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
+        moisture_particle_am_vector,
+        temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_particle_cryst_saturated, moisture_particle_am_saturated,
         moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours):
     # current layer index start with the first layer
     idx = 0
-    time, height, length = np.shape(moisture_particle_vector)
+    time, height, length = np.shape(moisture_particle_cryst_vector)
 
     # figure axis setup
     fig, ax = plt.subplots(2, 3, figsize=(20, 13))
     fig.subplots_adjust(bottom=0.15)
 
     ax[0, 0].set_title('Moisture Gas')
-    ax[0, 1].set_title('Moisture Particle')
+    ax[0, 1].set_title('Moisture Cryst Particle')
     ax[1, 0].set_title('Temp Gas')
     ax[1, 1].set_title('Temp Particle')
     ax[0, 2].set_title('Amorphous material')
+    ax[1, 2].set_title('Moisture am Particle')
 
     # display initial image
     im_y = ax[0, 0].imshow(moisture_gas_vector[idx, :, :], cmap='Blues', vmin=moisture_gas_initial_bed, vmax=moisture_gas_initial_in)
     fig.colorbar(im_y, ax=ax[0, 0])
 
-    im_x = ax[0, 1].imshow(moisture_particle_vector[idx, :, :], cmap='Blues', vmin=moisture_particle_initial, vmax=moisture_particle_saturated)
+    im_x = ax[0, 1].imshow(moisture_particle_cryst_vector[idx, :, :], cmap='Blues', vmin=moisture_particle_initial, vmax=moisture_particle_cryst_saturated)
     fig.colorbar(im_x, ax=ax[0, 1])
 
     im_tg = ax[1, 0].imshow(temp_gas_vector[idx, :, :], cmap='Reds', vmin=temp_min, vmax=max_temp_gas)
@@ -173,6 +175,10 @@ def slide_heat_map(
     im_am = ax[0, 2].imshow(amorphous_material_vector[idx, :, :], cmap='Greens', vmin=0, vmax=amorphous_material_initial)
     fig.colorbar(im_am, ax=ax[0, 2])
 
+    im_am_x = ax[1, 2].imshow(moisture_particle_am_vector[idx, :, :], cmap='Blues', vmin=0,
+                            vmax=moisture_particle_am_saturated)
+    fig.colorbar(im_am_x, ax=ax[1, 2])
+
     # setup a slider axis and the Slider
     ax_depth = plt.axes([0.23, 0.02, 0.56, 0.04])
     slider_depth = Slider(ax_depth, 'Time', 0, time-1, valinit=0)
@@ -181,11 +187,13 @@ def slide_heat_map(
     # update the figure with a change on the slider
     def update_depth(val):
         idx = int(round(slider_depth.val))
-        im_x.set_data(moisture_particle_vector[idx, :, :])
+        im_x.set_data(moisture_particle_cryst_vector[idx, :, :])
         im_y.set_data(moisture_gas_vector[idx, :, :])
         im_tp.set_data(temp_particle_vector[idx, :, :])
         im_tg.set_data(temp_gas_vector[idx, :, :])
         im_am.set_data(amorphous_material_vector[idx, :, :])
+        im_am_x.set_data(moisture_particle_am_vector)
+
         time_current = idx/time * hours
         fig.suptitle(f'Moisture, temperature & amorphous material in cylinder at time: {int(time_current)} hours.',
                      fontsize=16)
