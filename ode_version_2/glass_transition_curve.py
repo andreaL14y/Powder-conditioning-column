@@ -19,7 +19,7 @@ def monoExp(x, m, t):
     return m + 1 / (np.exp(-t * x))
 
 
-def glass_temp_mix(w1, t_g1, t_g2):
+def compute_glass_temp_mix(w1, t_g1, t_g2):
   w2 = 1 - w1
   k_param = 6.7                                                                 # Glass Transitions and Crystallization in Milk Powders
   glass_temp_mix = (w1 * t_g1 + w2 * t_g2 * k_param)/(w1 + w2 * k_param)
@@ -32,8 +32,8 @@ m, t = params
 
 ######################################## GORDON & TAYLOR ###############################################################
 weight_fractions_lactose = np.linspace(0, 1, 100)
-glass_temps_1 = glass_temp_mix(weight_fractions_lactose, glass_temp_lactose, glass_temp_water_1)
-glass_temps_2 = glass_temp_mix(weight_fractions_lactose, glass_temp_lactose, glass_temp_water_2)
+glass_temps_1 = compute_glass_temp_mix(weight_fractions_lactose, glass_temp_lactose, glass_temp_water_1)
+glass_temps_2 = compute_glass_temp_mix(weight_fractions_lactose, glass_temp_lactose, glass_temp_water_2)
 
 
 ############################################# PLOT #####################################################################
