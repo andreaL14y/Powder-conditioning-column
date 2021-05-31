@@ -57,12 +57,12 @@ def compute_p_saturated_vector(temp_kelvin_vector):
 
 
 def compute_molar_concentration_vector(relative_humidity_vector, pressure_saturated_vector, temp_vector):
-    molar_concentration = relative_humidity_vector * pressure_saturated_vector / (R_gas_constant * temp_vector)
+    molar_concentration = relative_humidity_vector * pressure_saturated_vector / (r_gas_constant * temp_vector)
     return molar_concentration
 
 
 def compute_partial_pressure_moisture_vector(molar_concentration_vector, temperature_vector):
-    partial_pressure_moisture = molar_concentration_vector * R_gas_constant * temperature_vector
+    partial_pressure_moisture = molar_concentration_vector * r_gas_constant * temperature_vector
     return partial_pressure_moisture
 
 
@@ -103,12 +103,15 @@ partial_pressure_moisture_initial = pressure_saturated_initial * relative_humidi
 molar_concentration_moisture_initial = compute_molar_concentration_vector(
     relative_humidity_gas_inlet, pressure_saturated_initial, temp_initial)
 
-moisture_gas_initial_bed = compute_Y_from_RH(relative_humidity_bed_initial, pressure_saturated_initial)
-moisture_gas_initial_in = compute_Y_from_RH(relative_humidity_gas_inlet, pressure_saturated_initial)
-moisture_gas_end = compute_Y_from_RH(relative_humidity_gas_end, pressure_saturated_initial)
-moisture_particle_initial = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
-moisture_cryst_particle_saturated = compute_moisture_particle_from_RH(relative_humidity_gas_inlet)
-moisture_am_particle_saturated = compute_equilibrium_moisture_am_vector(relative_humidity_gas_inlet)
+moisture_gas_initial_bed            = compute_Y_from_RH(relative_humidity_bed_initial, pressure_saturated_initial)
+moisture_gas_initial_in             = compute_Y_from_RH(relative_humidity_gas_inlet, pressure_saturated_initial)
+moisture_gas_end                    = compute_Y_from_RH(relative_humidity_gas_end, pressure_saturated_initial)
+
+moisture_cryst_particle_initial     = compute_moisture_particle_from_RH(relative_humidity_bed_initial)
+moisture_cryst_particle_saturated   = compute_moisture_particle_from_RH(relative_humidity_gas_inlet)
+
+moisture_am_particle_initial        = compute_equilibrium_moisture_am_vector(relative_humidity_bed_initial)
+moisture_am_particle_saturated      = compute_equilibrium_moisture_am_vector(relative_humidity_gas_inlet)
 
 k_GP_initial = compute_mass_transfer_coefficient_vector(molar_concentration_moisture_initial)[3]
 constant_initial = k_GP_initial * specific_surface_area * pressure_saturated_initial / pressure_ambient
