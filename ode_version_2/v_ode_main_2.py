@@ -8,32 +8,31 @@ from plot_ode_functions_2 import *
 import time
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
-max_time = 400000                       # seconds
-max_time = 2.5 * 60 * 60                # hours to seconds
-n_space_steps = 10                      # MUST BE EVEN NUMBER
+max_time = 2.5 * 60 * 60                                # hours to seconds
+n_space_steps = 10                                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
-resolution = 1000
-height_of_interest = 3
-n_features = 6
+resolution = 1000                                       # Number of outputs
+height_of_interest = 3                                  # Where do we want output
+n_features = 6                                          # X_C, X_A, Y, T_G, T_P, AM
 n_rotations = int(max_time/rotation_time_interval)
 n_rotations = 0
 
 ######################################### SETUP ########################################################################
-values_per_feature = n_space_steps * n_height_steps
-space_step_size = bed_length / n_space_steps
-discrete_time = np.linspace(0, max_time, resolution)
+values_per_feature  = n_space_steps * n_height_steps
+space_step_size     = bed_length / n_space_steps
+discrete_time       = np.linspace(0, max_time, resolution)
 
-moisture_gas_initial_all = np.zeros((n_height_steps, n_space_steps)) + moisture_gas_initial_bed
-moisture_particle_initial_cryst_all = np.zeros((n_height_steps, n_space_steps)) + moisture_particle_initial
-moisture_particle_initial_am_all = np.zeros((n_height_steps, n_space_steps)) + moisture_particle_initial
-temp_gas_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
-temp_particle_initial = np.zeros((n_height_steps, n_space_steps)) + temp_initial
-amorphous_material_initial_all = np.zeros((n_height_steps, n_space_steps)) + amorphous_material_initial
+moisture_gas_initial_all            = np.zeros((n_height_steps, n_space_steps)) + moisture_gas_initial_bed
+moisture_particle_initial_cryst_all = np.zeros((n_height_steps, n_space_steps)) + moisture_cryst_particle_initial
+moisture_particle_initial_am_all    = np.zeros((n_height_steps, n_space_steps)) + moisture_am_particle_initial
+temp_gas_initial_all                = np.zeros((n_height_steps, n_space_steps)) + temp_initial
+temp_particle_initial_all           = np.zeros((n_height_steps, n_space_steps)) + temp_initial
+amorphous_material_initial_all      = np.zeros((n_height_steps, n_space_steps)) + amorphous_material_initial
 
 ########################################## COMPUTE #####################################################################
 initial_system = np.concatenate(
     [moisture_gas_initial_all.flatten(), moisture_particle_initial_cryst_all.flatten(), moisture_particle_initial_am_all.flatten(),
-     temp_gas_initial.flatten(), temp_particle_initial.flatten(), amorphous_material_initial_all.flatten()])
+     temp_gas_initial_all.flatten(), temp_particle_initial_all.flatten(), amorphous_material_initial_all.flatten()])
 
 if n_rotations > 0:
     n_time_outputs_per_rotation = int(resolution / n_rotations)
@@ -43,7 +42,8 @@ else:
     computed_system = np.zeros([resolution, n_features * values_per_feature])
 
 tabs = 40
-print('Initial moisture powder:'.ljust(tabs), '{:.3f}'.format(moisture_particle_initial))
+print('Initial moisture cryst powder:'.ljust(tabs), '{:.3f}'.format(moisture_cryst_particle_initial))
+print('Initial moisture am powder:'.ljust(tabs), '{:.3f}'.format(moisture_am_particle_initial))
 print(f'Saturated moisture powder:'.ljust(tabs), '{:.3f}'.format(moisture_cryst_particle_saturated))
 print(f'Saturated moisture am powder:'.ljust(tabs), '{:.3f}'.format(moisture_am_particle_saturated))
 
@@ -174,7 +174,7 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 #
 slide_heat_map(
     moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector, moisture_particle_am_vector,
-    temp_min, max_temp_particle, max_temp_gas, moisture_particle_initial, moisture_cryst_particle_saturated, moisture_am_particle_saturated,
+    temp_min, max_temp_particle, max_temp_gas, moisture_cryst_particle_initial, moisture_cryst_particle_saturated, moisture_am_particle_saturated,
     moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours)
 
 print('\n############################################ PROGRAM ENDED ############################################')
