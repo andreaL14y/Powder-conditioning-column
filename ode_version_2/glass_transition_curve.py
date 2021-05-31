@@ -1,17 +1,13 @@
 import numpy as np
 import scipy.optimize
 import matplotlib
-
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
+from input_parameters import*
 
 ############################################### DATA ###################################################################
-kelvin = 273.15
 weight_fraction_lactose = np.array([0, 0.2, 0.4, 0.6, 0.8, 1])
 temperature = np.array([-135, -127, -112, -90, -50, 101]) + kelvin
-glass_temp_water_1 = 136            # Kelvin
-glass_temp_water_2 = 165
-glass_temp_lactose = 101 + kelvin   # Kelvin
 room_temp = 20 + kelvin
 
 ############################################ FUNCTIONS #################################################################
@@ -19,10 +15,10 @@ def monoExp(x, m, t):
     return m + 1 / (np.exp(-t * x))
 
 
-def compute_glass_temp_mix(w1, t_g1, t_g2):
-  w2 = 1 - w1
+def compute_glass_temp_mix(w1_lactose, t_g_lactose, t_g2):
+  w2 = 1 - w1_lactose
   k_param = 6.7                                                                 # Glass Transitions and Crystallization in Milk Powders
-  glass_temp_mix = (w1 * t_g1 + w2 * t_g2 * k_param)/(w1 + w2 * k_param)
+  glass_temp_mix = (w1_lactose * t_g_lactose + w2 * t_g2 * k_param)/(w1_lactose + w2 * k_param)
   return(glass_temp_mix)
 
 ############################################# FITTING ##################################################################
@@ -61,8 +57,8 @@ glass_temps_2 = compute_glass_temp_mix(weight_fractions_lactose, glass_temp_lact
 # ax.grid(which='major', alpha=0.5)
 #
 # #plt.grid()
-# plt.xlim(0.8, 1)
-# plt.ylim(220, 400)
+# # plt.xlim(0.8, 1)
+# # plt.ylim(220, 400)
 # plt.ylabel('Temp K')
 # plt.xlabel('Weight fraction lactose')
 # plt.legend()
