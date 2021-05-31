@@ -61,7 +61,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
                       (gas_density * (1 - porosity_powder) * gas_heat_capacity) - gas_velocity * gradient_temp_gas
 
     conduction_particle = conductivity_particle * laplacian_temp_particle / particle_density
-    heat_of_sorption_particle = constant * (relative_humidity - equilibrium_state) * heat_of_vaporization
+    heat_of_sorption_particle = constant * (relative_humidity - equilibrium_state) * heat_of_sorption
     heat_transfer_particle = heat_transfer_coefficient * specific_surface_area * (temp_gas_vector-temp_particle_vector)
 
     change_temp_particle = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle) / \
@@ -127,12 +127,12 @@ def compute_p_saturated_vector(temp_kelvin_vector):
 
 
 def compute_molar_concentration_vector(relative_humidity_vector, pressure_saturated_vector, temp_vector):
-    molar_concentration = relative_humidity_vector * pressure_saturated_vector / (R_gas_constant * temp_vector)
+    molar_concentration = relative_humidity_vector * pressure_saturated_vector / (r_gas_constant * temp_vector)
     return molar_concentration
 
 
 def compute_partial_pressure_moisture_vector(molar_concentration_vector, temperature_vector):
-    partial_pressure_moisture = molar_concentration_vector * R_gas_constant * temperature_vector
+    partial_pressure_moisture = molar_concentration_vector * r_gas_constant * temperature_vector
     return partial_pressure_moisture
 
 
