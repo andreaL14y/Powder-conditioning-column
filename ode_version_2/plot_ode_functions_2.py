@@ -192,7 +192,7 @@ def slide_heat_map(
         im_tp.set_data(temp_particle_vector[idx, :, :])
         im_tg.set_data(temp_gas_vector[idx, :, :])
         im_am.set_data(amorphous_material_vector[idx, :, :])
-        im_am_x.set_data(moisture_particle_am_vector)
+        im_am_x.set_data(moisture_particle_am_vector[idx, :, :])
 
         time_current = idx/time * hours
         fig.suptitle(f'Moisture, temperature & amorphous material in cylinder at time: {int(time_current)} hours.',
