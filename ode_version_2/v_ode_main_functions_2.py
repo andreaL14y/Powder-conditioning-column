@@ -1,6 +1,6 @@
 from input_parameters import*
 from v_ode_functions_2 import*
-from find_k_from_data import crystallization_parameters, crystallization_speed_curves
+# from find_k_from_data import crystallization_parameters, crystallization_speed_curves
 from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1, glass_temp_water_2
 counter = 0
 from art_functions import compute_entropy_of_activation_S, compute_enthalpy_of_activation_H, compute_crystal_growth_rate
@@ -51,23 +51,25 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
         boundary_condition_wall=temp_walls, temperature=True)
 
 
-    ##################################### UPDATE MOISTURE ##############################################################
-    change_m_diffusion_gas = moisture_diffusivity * gas_density * (1 - porosity_powder) * laplacian_moisture_gas
-    change_m_absorption_gas = - constant * particle_density * porosity_powder * (relative_humidity - equilibrium_state_cryst)
+    ############################## UPDATE AMORPHOUS MATERIAL ###########################################################
+    change_amorphous_material = compute_amorphicity(
+        moisture_particle_am_vector, temp_particle_vector, amorphous_material_vector, glass_transition_temp_vector)
+    # change_amorphous_material[temp_particle_vector < glass_transition_temp_vector] /= 10
 
+    ##################################### UPDATE MOISTURE ##############################################################
+    total_equilibrium_term = ((1 - amorphous_material_vector) * (relative_humidity - equilibrium_state_cryst) +
+                              amorphous_material_vector * (equilibrium_state_am - moisture_particle_am_vector))
+
+    change_m_diffusion_gas = moisture_diffusivity * gas_density * (1 - porosity_powder) * laplacian_moisture_gas
+    change_m_absorption_gas = - constant * particle_density * porosity_powder * total_equilibrium_term
     change_m_gas = (change_m_diffusion_gas + change_m_absorption_gas) / \
                    (gas_density * (1 - porosity_powder)) - gas_velocity * gradient_moisture_gas
 
 
-    change_m_particle       = constant * (relative_humidity - equilibrium_state_cryst)
-    change_m_particle_cryst = change_m_particle * (1 - amorphous_material_vector)
+    change_m_particle_cryst       = constant * (relative_humidity - equilibrium_state_cryst)
+    # change_m_particle_cryst = change_m_particle_cryst * (1 - amorphous_material_vector)
     change_m_particle_am    = constant * (equilibrium_state_am - moisture_particle_am_vector)
-    change_m_particle_am    = change_m_particle_am * amorphous_material_vector
-
-
-    ############################## UPDATE AMORPHOUS MATERIAL ###########################################################
-    change_amorphous_material = compute_amorphicity(
-        moisture_particle_am_vector, temp_particle_vector, amorphous_material_vector, glass_transition_temp_vector)
+    # change_m_particle_am    = change_m_particle_am * amorphous_material_vector
 
 
     ##################################### PRINT STUFF ##################################################################
@@ -77,13 +79,18 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
               f"{glass_transition_temp_vector[2, 0] - kelvin:.2f}, {temp_glass_temp_diff[2, 0]:.2f}"
               f"\nMoisture am {moisture_particle_am_vector[2, 0]:.4f}\n"
               f"Moisture eq am {equilibrium_state_am[2, 0]:.4f}\n"
-              f"RH {relative_humidity[2, 0]:.2}")
+              f"RH {relative_humidity[2, 0]:.2} \n"
+              f"Temp particle: {temp_particle_vector[2, 0]:.4f}\n"
+              f"T_G: {glass_transition_temp_vector[2, 0]:.4f}\n"
+              f"Amorphous material change: {change_amorphous_material[2, 0]}\n"
+              f"Moisture change: {change_m_particle_am[2, 0]}")
         print(f"Time computed is {t/(3600):.3} h")
 
     ##################################### UPDATE TEMP ##################################################################
     conduction_gas          = conductivity_gas * (1 - porosity_powder) * laplacian_temp_gas
-    heat_of_sorption_gas    = particle_density * porosity_powder * constant * (relative_humidity - equilibrium_state_cryst) * \
-                       moisture_vapor_heat_capacity * (temp_gas_vector - temp_particle_vector)                  # TODO: include am moisture
+    heat_of_sorption_gas    = particle_density * porosity_powder * constant * moisture_vapor_heat_capacity * \
+                              (temp_gas_vector - temp_particle_vector) * total_equilibrium_term
+
     heat_transfer_gas       = -heat_transfer_coefficient * particle_density * porosity_powder * \
                               specific_surface_area * (temp_gas_vector - temp_particle_vector)
 
@@ -91,9 +98,11 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
                               (gas_density * (1 - porosity_powder) * gas_heat_capacity) - gas_velocity * gradient_temp_gas
 
     conduction_particle     = conductivity_particle * laplacian_temp_particle / particle_density
-    heat_of_sorption_particle = constant * (relative_humidity - equilibrium_state_cryst) * heat_of_sorption     # TODO: include am moisture
+    heat_of_sorption_particle = constant * total_equilibrium_term * heat_of_sorption
     heat_transfer_particle  = heat_transfer_coefficient * specific_surface_area * (temp_gas_vector-temp_particle_vector)
-    heat_of_cryst_particle  = heat_of_crystallization * change_amorphous_material
+    heat_of_cryst_particle  = heat_of_crystallization * (-change_amorphous_material)
+    # if heat_of_cryst_particle[0,2] != 0:
+    #     print(heat_of_cryst_particle[0,2])
 
     change_temp_particle    = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle + heat_of_cryst_particle) / \
                            particle_heat_capacity
@@ -112,10 +121,32 @@ def compute_amorphicity(
 
     # Only change if above Tg
     k_parameter, reaction_rate = compute_k_vector(temp_particle_vector, moisture_particle_am_vector, glass_transition_temp_vector)
-    # k_parameter = compute_k_vector_old(temp_particle_vector, moisture_particle_am_vector, glass_transition_temp_vector)[:, :, 1]
+    # if counter % 10000 == 0:
+    #     print(k_parameter)
+
+    # k_large = k_parameter[k_parameter > 1]
+    # k_small = k_parameter[k_parameter < 0.00001]
+    # n_k_large = len(k_large)
+    # n_k_small = len(k_small)
+
+    # if n_k_large != 0:
+    #     print(f'{n_k_large} large values of k, {n_k_small} small values of k')
+
+    # k_parameter /= 100
     # k_parameter[glass_transition_temp_vector > temp_particle_vector] = 0
-    change_amorphous_material = - k_parameter * moisture_particle_am_vector * amorphous_material_vector
+
+    change_amorphous_material = - k_parameter * amorphous_material_vector
     return change_amorphous_material
+
+
+
+def compute_k_vector(temperature_vector, moisture_content_vector, glass_transition_temp_vector):
+    k_vector = compute_crystal_growth_rate(moisture_content_vector, temperature_vector)
+    diff_temp = temperature_vector - glass_transition_temp_vector
+
+    k_vector *= 1/(1 + np.exp(-3 * diff_temp - 3))          # Sigmoid to ramp up
+    k_vector = np.where(diff_temp < -10, 0, k_vector)
+    return k_vector
 
 
 def compute_k_vector_old(temperature_vector, humidity_vector, glass_transition_temp_vector):
@@ -141,10 +172,6 @@ def compute_k_vector_old(temperature_vector, humidity_vector, glass_transition_t
 
             parameters_vector[h, l, :] = starting_point, k_parameter, rest
     return parameters_vector
-
-def compute_k_vector(temperature_vector, moisture_content_vector, glass_transition_temp_vector):
-    k_vector = compute_crystal_growth_rate(moisture_content_vector, temperature_vector)
-    return k_vector
 
 
 def compute_gradient_vector(vector, space_step, boundary_condition_0, boundary_condition_L):
