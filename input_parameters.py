@@ -1,4 +1,5 @@
 import numpy as np
+
 ########################################### PARAMETERS #################################################################
 # Constants
 r_gas_constant = 8.314                                                          # ideal gas constant, J/(K*mol)
@@ -53,7 +54,7 @@ rotation_time_interval = 19 * 60                                                
 temp_initial = kelvin + 24                                                       # K, room temperature 24 degrees
 temp_walls = kelvin + 24                                                         # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                              # humidity in bed, starting condition
-relative_humidity_gas_inlet = 0.4                                                # humidity of flowing gas
+relative_humidity_gas_inlet = 0.6                                                # humidity of flowing gas
 relative_humidity_gas_end = 0.2                                                  # humidity at end of cylinder
 pressure_ambient = 101325                                                        # atmospheric pressure, Pa
 
