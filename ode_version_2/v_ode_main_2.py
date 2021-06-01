@@ -50,7 +50,7 @@ print(f'Saturated moisture am powder:'.ljust(tabs), '{:.3f}'.format(moisture_am_
 print('\n       ***        STARTING COMPUTATION       ***        ')
 run_time_start = time.time()
 
-params = crystallization_parameters
+#params = crystallization_parameters
 # print(f'Parameters are:'.ljust(tabs), '[starting_point, k_parameter, rest]',
 #       f'\nT 20, RH 30:'.ljust(tabs), f' [{params[0, 0]:.2f},           {params[0, 1]:.2f},        {params[0, 2]:.2f}]',
 #       f'\nT 20, RH 80:'.ljust(tabs), f' [{params[1, 0]:.2f},           {params[1, 1]:.2f},        {params[1, 2]:.2f}]',
@@ -73,7 +73,7 @@ if n_rotations > 0:
             initial_system[(feature * values_per_feature):((feature + 1) * values_per_feature)] = avg
 else:
     computed_system = odeint(conditioning_column, initial_system, discrete_time,
-                             args=(space_step_size, n_space_steps, n_height_steps))
+                             args=(space_step_size, n_space_steps, n_height_steps))#, mxstep=5000)
     for feature in range(n_features):
         avg = np.average(computed_system[-1, (feature * values_per_feature):((feature + 1) * values_per_feature)])
 
@@ -103,6 +103,8 @@ temp_gas_vector =                   temp_gas_vector.reshape(-1, n_height_steps, 
 temp_particle_vector =              temp_particle_vector.reshape(-1, n_height_steps, n_space_steps)
 amorphous_material_vector =         amorphous_material_vector.reshape(-1, n_height_steps, n_space_steps)
 #np.save('amorphous_material', amorphous_material_vector)
+glass_temp_vector = compute_glass_temp_mix( 1-moisture_particle_am_vector, glass_temp_lactose, glass_temp_water_1 )
+temp_diff = temp_particle_vector - glass_temp_vector
 
 if n_rotations > 0:
     avg_amorphous_material = np.average(computed_system[-1, -1, (5 * values_per_feature):(6 * values_per_feature)])
@@ -173,8 +175,8 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 #     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
 #
 slide_heat_map(
-    moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector, moisture_particle_am_vector,
-    temp_min, max_temp_particle, max_temp_gas, moisture_cryst_particle_initial, moisture_cryst_particle_saturated, moisture_am_particle_saturated,
+    moisture_gas_vector, moisture_particle_am_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector, temp_diff,
+    temp_min, max_temp_particle, max_temp_gas, moisture_am_particle_initial, moisture_cryst_particle_saturated, moisture_am_particle_saturated,
     moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours)
 
 print('\n############################################ PROGRAM ENDED ############################################')
