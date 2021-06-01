@@ -68,6 +68,9 @@ def compute_moisture_content(dt, k, moisture_content):
     return moisture_content
 
 
+# a = compute_crystal_growth_rate(0.0125, 24+kelvin)[0]
+# print(a)
+
 # k_test, reaction_rate = compute_crystal_growth_rate(0.088, 15 + kelvin)
 # print(f'k is: {k_test:.4f}')
 # k_test, reaction_rate = compute_crystal_growth_rate(0.07, 25 + kelvin)
@@ -107,7 +110,7 @@ def compute_moisture_content(dt, k, moisture_content):
 # plt.legend()
 
 # # PLOTTING
-initial_moisture = 0.0125
+# initial_moisture = 0.0125
 # fig, axs = plt.subplots(4, figsize=(15,15))
 # fig.suptitle(f'At temp {temp:.2f} K = {temp-kelvin:.2f} deg C')
 #
