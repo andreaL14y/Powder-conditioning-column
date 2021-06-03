@@ -51,10 +51,10 @@ cross_sectional_area = np.pi * (column_diameter/2)**2                           
 volumetric_flow_rate_liters_per_minute = 0.5                                     # l/min
 rotation_time_interval = 19 * 60                                                 # s after which to rotate
 
-temp_initial = kelvin + 24                                                       # K, room temperature 24 degrees
-temp_walls = kelvin + 24                                                         # At cylinder walls, cooling
+temp_initial = kelvin + 35                                                       # K, room temperature 24 degrees
+temp_walls = kelvin + 35                                                         # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                              # humidity in bed, starting condition
-relative_humidity_gas_inlet = 0.6                                                # humidity of flowing gas
+relative_humidity_gas_inlet = 0.7                                                # humidity of flowing gas
 relative_humidity_gas_end = 0.2                                                  # humidity at end of cylinder
 pressure_ambient = 101325                                                        # atmospheric pressure, Pa
 
