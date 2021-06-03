@@ -37,28 +37,6 @@ def compute_crystal_growth_rate(moisture, temp):
 
     k = np.exp(ln_stuff) * r_hand_1 * temp             # 0.07 g/g m, 0.93 g/g lactose
     reaction_rate = moisture * k
-    # import sys
-    # import warnings
-    # warnings.filterwarnings("error")
-    # try:
-    #     k = np.where(temp < t_g, 0, np.exp(r_hand_1 + r_hand_2)/temp)
-    #     # k = np.where(temp < t_g, 0, np.exp(r_hand_1 + r_hand_2)/temp)
-    # except:
-    #     print('\nHey I have issues!')
-    #     print( temp < t_g )
-    #     sys.exit()
-
-    # if temp[temp > t_g] != []:
-    #     print(temp[temp > t_g])
-
-    # if temp > t_g:
-    #     entropy_S = compute_entropy_of_activation_S(moisture)
-    #     enthalpy_H = compute_enthalpy_of_activation_H(moisture)
-    #     r_hand_1 = np.log(k_boltzmann/h_planck) + entropy_S/r_gas_constant
-    #     r_hand_2 = -(enthalpy_H/r_gas_constant)/temp
-    #     k = np.exp(r_hand_1 + r_hand_2)/temp
-    # else:
-    #     k = 0
     return k, reaction_rate
 
 
@@ -70,7 +48,6 @@ def compute_moisture_content(dt, k, moisture_content):
 
 # a = compute_crystal_growth_rate(0.0125, 24+kelvin)[0]
 # print(a)
-
 # k_test, reaction_rate = compute_crystal_growth_rate(0.088, 15 + kelvin)
 # print(f'k is: {k_test:.4f}')
 # k_test, reaction_rate = compute_crystal_growth_rate(0.07, 25 + kelvin)
@@ -147,7 +124,6 @@ def compute_moisture_content(dt, k, moisture_content):
 # axs[3].grid()
 #
 # plt.xlabel('Moisture content X')
-
 
 # plt.show()
 
