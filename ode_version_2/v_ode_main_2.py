@@ -175,8 +175,18 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 #     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
 #
 slide_heat_map(
-    moisture_gas_vector, moisture_particle_am_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector, temp_diff,
-    temp_min, max_temp_particle, max_temp_gas, moisture_am_particle_initial, moisture_cryst_particle_saturated, moisture_am_particle_saturated,
-    moisture_gas_initial_bed, moisture_gas_initial_in, amorphous_material_initial, hours)
+    moisture_gas_vector, moisture_particle_am_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
+    temp_diff, temp_min, max_temp_particle, max_temp_gas, moisture_am_particle_initial,
+    moisture_cryst_particle_saturated, moisture_am_particle_saturated, moisture_gas_initial_bed,
+    moisture_gas_initial_in, amorphous_material_initial, hours)
+
+############################################ SAVE DATA #################################################################
+# print('Do you want to save stuff Y/N?')
+# answer = input()
+
+answer = 'Y'
+if answer == 'Y':
+    np.save(f'RH-{relative_humidity_gas_inlet}_T-{temp_initial-kelvin}_TTg', temp_diff)
+    np.save(f'RH-{relative_humidity_gas_inlet}_T-{temp_initial-kelvin}_AmMaterial', amorphous_material_vector)
 
 print('\n############################################ PROGRAM ENDED ############################################')
