@@ -5,6 +5,31 @@ import matplotlib
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
+########################################################################################################################
+def compute_k_vector_old(temperature_vector, humidity_vector, glass_transition_temp_vector):
+    height_steps, length_steps = temperature_vector.shape
+    parameters_vector = np.zeros((height_steps, length_steps, 3))
+    for h in range(height_steps):
+        for l in range(length_steps):
+            temp = temperature_vector[h, l]
+            rh = humidity_vector[h, l]
+            if temp < glass_transition_temp_vector[h, l]:
+                starting_point, k_parameter, rest = 0, 0, 0
+            elif temp < 40 + kelvin:
+                if rh < 55:
+                    starting_point, k_parameter, rest = crystallization_parameters[0]
+                else:
+                    starting_point, k_parameter, rest = crystallization_parameters[1]
+            else:
+                if rh < 55:
+                    starting_point, k_parameter, rest = crystallization_parameters[2]
+                else:
+                    starting_point, k_parameter, rest = crystallization_parameters[3]
+            k_parameter /= 60 * 60 #* 7 * 24                                     # Unit transformed from 1/h to 1/s
+
+            parameters_vector[h, l, :] = starting_point, k_parameter, rest
+    return parameters_vector
+########################################################################################################################
 
 def crystallization_speed_curves(data, starting_point, k_parameter, rest):
     return starting_point * np.exp(-k_parameter * data) + rest
