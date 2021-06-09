@@ -29,7 +29,7 @@ gas_density = 1                                                                 
 # Lactose
 glass_temp_lactose = 101 + kelvin                                               # Kelvin
 particle_density = 1500                                                         # kg/m^3
-particle_diameter = 0.000004                                                    # m
+particle_diameter = 0.000002                                                    # m, from page 46 in thesis
 heat_of_sorption = (185.55 * 1000 / 342.3) * 1000                               # delta_H, J/kg, enthalpy of sorption, kJ/mol * mol/g * g/kg
 heat_of_crystallization = 43.1 * 1000                                           # delta_H, J/kg, enthalpy of crystallization, kJ/mol * mol/g * g/kg
 particle_heat_capacity = 417.6 * 1000/342.3                                     # C_P,P & C_P,WP, heat cap particle, J/(kg * K)
@@ -43,21 +43,26 @@ alpha_parameter = 25                                                            
 
 
 # Variables
-amorphous_material_initial = 0.09
+amorphous_material_initial = 0.16                                               # 16 % am left in batch L6.5 before cond, page 82 thesis
 
 bed_length = 0.032                                                               # m
+bed_length = 0.024                                                               # m
+# bed_length = 0.07                                                               # m
 column_diameter = 0.024                                                          # m
 cross_sectional_area = np.pi * (column_diameter/2)**2                            # m^2
 volumetric_flow_rate_liters_per_minute = 0.5                                     # l/min
+volumetric_flow_rate_liters_per_minute = 0.06                                     # l/min
 rotation_time_interval = 19 * 60                                                 # s after which to rotate
+rotation_time_interval = 58 * 60                                                 # s after which to rotate
 
 temp_initial = kelvin + 35                                                       # K, room temperature 24 degrees
-temp_walls = kelvin + 35                                                         # At cylinder walls, cooling
-relative_humidity_bed_initial = 0.2                                              # humidity in bed, starting condition
-relative_humidity_gas_inlet = 0.7                                                # humidity of flowing gas
-relative_humidity_gas_end = 0.2                                                  # humidity at end of cylinder
+temp_initial = kelvin + 24                                                       # K, room temperature 24 degrees
+temp_walls = temp_initial                                                         # At cylinder walls, cooling
+relative_humidity_bed_initial = 0.3                                              # humidity in bed, starting condition
+relative_humidity_gas_inlet = 0.45                                                # humidity of flowing gas
+relative_humidity_gas_end = 0.3                                                  # humidity at end of cylinder
 pressure_ambient = 101325                                                        # atmospheric pressure, Pa
 
 mass_powder = (1 - porosity_powder) * particle_density * \
               bed_length * (column_diameter/2)**2 * 1000                         # weight converted to g
-# print(mass_powder, 'g')
+print(mass_powder, 'g')
