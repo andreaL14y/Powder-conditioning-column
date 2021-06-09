@@ -11,7 +11,7 @@ import time
 max_time = 2.5 * 60 * 60                                # hours to seconds
 n_space_steps = 10                                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
-resolution = 1000                                       # Number of outputs
+resolution = 5000                                       # Number of outputs, TODO: more for nn, k estimation?
 height_of_interest = 3                                  # Where do we want output
 n_features = 6                                          # X_C, X_A, Y, T_G, T_P, AM
 n_rotations = int(max_time/rotation_time_interval)
@@ -124,14 +124,17 @@ max_temp_gas_index = np.where(temp_gas_vector == max_temp_gas)
 
 max_temp_particle = np.max(temp_particle_vector)
 max_moisture_gas = np.max(moisture_gas_vector)
-max_moisture_particle = np.max(moisture_particle_cryst_vector)
-max_moisture_particle_index = np.where(moisture_particle_cryst_vector == max_moisture_particle)
+max_moisture_particle_cryst = np.max(moisture_particle_cryst_vector)
+max_moisture_particle_cryst_index = np.where(moisture_particle_cryst_vector == max_moisture_particle_cryst)
 
-average_temp_particles = np.average(temp_particle_vector, axis=(1, 2))
-np.save('average_temp', average_temp_particles)
+max_moisture_particle_am = np.max(moisture_particle_am_vector)
+max_moisture_particle_am_index = np.where(moisture_particle_am_vector == max_moisture_particle_am)
 
-average_moisture_particles = np.average(moisture_particle_cryst_vector, axis=(1, 2))
-np.save('average_moisture', average_moisture_particles,)
+# average_temp_particles = np.average(temp_particle_vector, axis=(1, 2))
+# np.save('average_temp', average_temp_particles)
+#
+# average_moisture_particles = np.average(moisture_particle_cryst_vector, axis=(1, 2))
+# np.save('average_moisture', average_moisture_particles,)
 
 
 #tabs = 50
@@ -144,9 +147,17 @@ print('Mass powder:'.ljust(tabs), '{:.2f} g\n'.format(mass_powder))
 
 print('Max humidity gas:'.ljust(tabs), '{:.4f}'.format(max_moisture_gas))
 print('Saturated humidity gas at inlet:'.ljust(tabs), '{:.4f}'.format(moisture_gas_initial_in))
-print('Max humidity in particles:'.ljust(tabs), '{:.4f}'.format(max_moisture_particle))
-print('At time, height, length:'.ljust(tabs), max_moisture_particle_index[0], max_moisture_particle_index[1], max_moisture_particle_index[2])
+
+print('\nMax humidity in cryst particles:'.ljust(tabs), '{:.4f}'.format(max_moisture_particle_cryst))
+print('At time, height, length:'.ljust(tabs), max_moisture_particle_cryst_index[0],
+      max_moisture_particle_cryst_index[1], max_moisture_particle_cryst_index[2])
 print('Saturated humidity cryst particles:'.ljust(tabs), '{:.4f}'.format(moisture_cryst_particle_saturated))
+
+print('Max humidity in am particles:'.ljust(tabs), '{:.4f}'.format(max_moisture_particle_am))
+print('At time, height, length:'.ljust(tabs), max_moisture_particle_am_index[0],
+      max_moisture_particle_am_index[1], max_moisture_particle_am_index[2])
+print('Here, temp in particles is:'.ljust(tabs), temp_particle_vector[max_moisture_particle_am_index] - kelvin)
+
 print('Saturated humidity am particles:'.ljust(tabs), '{:.4f} \n'.format(moisture_am_particle_saturated))
 
 print('Max temperature gas:'.ljust(tabs), '{:.2f} degrees Celcius'.format(max_temp_gas - kelvin))
