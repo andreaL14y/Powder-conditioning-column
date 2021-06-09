@@ -32,6 +32,12 @@ glass_temps_1 = compute_glass_temp_mix(weight_fractions_lactose, glass_temp_lact
 glass_temps_2 = compute_glass_temp_mix(weight_fractions_lactose, glass_temp_lactose, glass_temp_water_2)
 
 
+######################################## FIG 2 ARTICLE #################################################################
+# temps = np.array([15, 25, 40]) + kelvin
+# lactose_contents = 1 - np.array([0.085, 0.07, 0.045])
+# print('T_G:', compute_glass_temp_mix(lactose_contents, glass_temp_lactose, glass_temp_water_1))
+# print('T:', temps)
+
 ############################################# PLOT #####################################################################
 # fig = plt.figure(figsize=(8, 12), dpi= 100, facecolor='w', edgecolor='k')
 # plt.plot(weight_fractions_lactose, glass_temps_1, color='crimson', label='T_G water 136 K')
