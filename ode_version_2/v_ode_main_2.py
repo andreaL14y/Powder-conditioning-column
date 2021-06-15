@@ -8,7 +8,7 @@ from plot_ode_functions_2 import *
 import time
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
-max_time = 2.5 * 60 * 60                                # hours to seconds
+max_time = 3 * 60 * 60                                # hours to seconds
 n_space_steps = 10                                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 5000                                       # Number of outputs, TODO: more for nn, k estimation?
@@ -24,7 +24,9 @@ discrete_time       = np.linspace(0, max_time, resolution)
 
 moisture_gas_initial_all            = np.zeros((n_height_steps, n_space_steps)) + moisture_gas_initial_bed
 moisture_particle_initial_cryst_all = np.zeros((n_height_steps, n_space_steps)) + moisture_cryst_particle_initial
+moisture_particle_initial_cryst_all = np.zeros((n_height_steps, n_space_steps))
 moisture_particle_initial_am_all    = np.zeros((n_height_steps, n_space_steps)) + moisture_am_particle_initial
+moisture_particle_initial_am_all    = np.zeros((n_height_steps, n_space_steps))
 temp_gas_initial_all                = np.zeros((n_height_steps, n_space_steps)) + temp_initial
 temp_particle_initial_all           = np.zeros((n_height_steps, n_space_steps)) + temp_initial
 amorphous_material_initial_all      = np.zeros((n_height_steps, n_space_steps)) + amorphous_material_initial
@@ -42,10 +44,13 @@ else:
     computed_system = np.zeros([resolution, n_features * values_per_feature])
 
 tabs = 40
-print('Initial moisture cryst powder:'.ljust(tabs), '{:.3f}'.format(moisture_cryst_particle_initial))
+print('Initial moisture cryst powder:'.ljust(tabs), '{:.3e}'.format(moisture_cryst_particle_initial))
 print('Initial moisture am powder:'.ljust(tabs), '{:.3f}'.format(moisture_am_particle_initial))
-print(f'Saturated moisture powder:'.ljust(tabs), '{:.3f}'.format(moisture_cryst_particle_saturated))
+print(f'Saturated moisture powder:'.ljust(tabs), '{:.3e}'.format(moisture_cryst_particle_saturated))
 print(f'Saturated moisture am powder:'.ljust(tabs), '{:.3f}'.format(moisture_am_particle_saturated))
+
+print(f'Initial moisture gas:'.ljust(tabs), '{:.3f}'.format(moisture_gas_initial_bed))
+print(f'Saturated moisture gas:'.ljust(tabs), '{:.3f}'.format(moisture_gas_initial_in))
 
 print('\n       ***        STARTING COMPUTATION       ***        ')
 run_time_start = time.time()
@@ -146,9 +151,9 @@ print('Temp walls:'.ljust(tabs), '{:.2f} degrees Celsius'.format(temp_walls - ke
 print('Mass powder:'.ljust(tabs), '{:.2f} g\n'.format(mass_powder))
 
 print('Max humidity gas:'.ljust(tabs), '{:.4f}'.format(max_moisture_gas))
-print('Saturated humidity gas at inlet:'.ljust(tabs), '{:.4f}'.format(moisture_gas_initial_in))
+print('Saturated humidity gas at inlet:'.ljust(tabs), '{:.4f}'.format(moisture_gas_initial_in), '\n')
 
-print('\nMax humidity in cryst particles:'.ljust(tabs), '{:.4f}'.format(max_moisture_particle_cryst))
+print('Max humidity in cryst particles:'.ljust(tabs), '{:.4f}'.format(max_moisture_particle_cryst))
 print('At time, height, length:'.ljust(tabs), max_moisture_particle_cryst_index[0],
       max_moisture_particle_cryst_index[1], max_moisture_particle_cryst_index[2])
 print('Saturated humidity cryst particles:'.ljust(tabs), '{:.4f}'.format(moisture_cryst_particle_saturated))
