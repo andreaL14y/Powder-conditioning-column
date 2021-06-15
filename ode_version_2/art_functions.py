@@ -37,7 +37,7 @@ def compute_crystal_growth_rate(moisture, temp):
 
     k = np.exp(ln_stuff) * r_hand_1 * temp             # 0.07 g/g m, 0.93 g/g lactose
     reaction_rate = moisture * k
-    return k, reaction_rate
+    return k
 
 
 def compute_moisture_content(dt, k, moisture_content):
@@ -46,13 +46,13 @@ def compute_moisture_content(dt, k, moisture_content):
     return moisture_content
 
 
-# a = compute_crystal_growth_rate(0.0125, 24+kelvin)[0]
+# a = compute_crystal_growth_rate(0.0125, 24+kelvin)
 # print(a)
-# k_test, reaction_rate = compute_crystal_growth_rate(0.088, 15 + kelvin)
+# k_test = compute_crystal_growth_rate(0.088, 15 + kelvin)
 # print(f'k is: {k_test:.4f}')
-# k_test, reaction_rate = compute_crystal_growth_rate(0.07, 25 + kelvin)
+# k_test = compute_crystal_growth_rate(0.07, 25 + kelvin)
 # print(f'k is: {k_test:.4f}')
-# k_test, reaction_rate = compute_crystal_growth_rate(0.036, 40 + kelvin)
+# k_test = compute_crystal_growth_rate(0.036, 40 + kelvin)
 # print(f'k is: {k_test:.4f}')
 # # print(f'Reaction rate is: {reaction_rate:.4f}/s')
 # k_test = np.exp(-9) * (60 + kelvin)
@@ -74,18 +74,14 @@ def compute_moisture_content(dt, k, moisture_content):
 #     moistures[0] = initial_moistures[setup]
 #     temp = temps[setup]
 #     for time in range(max_time-1):
-#         k = -compute_crystal_growth_rate(moistures[time], temp)[0]
+#         k = -compute_crystal_growth_rate(moistures[time], temp)
 #         moistures[time + 1] = compute_moisture_content(1, k, moistures[time])
 #     min_m = min(moistures)
 #     max_m = max(moistures)
 #     moistures = (moistures - min_m)/(max_m - min_m)
 #
 #     times = np.arange(0, max_time)
-#     plt.plot(times, moistures, label=f'Temp {temp-kelvin:.2f}', color=colors[setup])
-# plt.xlabel('time, min')
-# plt.ylabel('Moisture content')
-# plt.legend()
-
+#
 # # PLOTTING
 # initial_moisture = 0.0125
 # fig, axs = plt.subplots(4, figsize=(15,15))
@@ -95,7 +91,7 @@ def compute_moisture_content(dt, k, moisture_content):
 # time = np.linspace(0, 1000, 1000)
 # # m = np.linspace(0.01, 0.12, 150)
 #
-# k, r_r = compute_crystal_growth_rate(m, temp)
+# k = compute_crystal_growth_rate(m, temp)
 # m_max_index = np.argmax(k)
 # h = compute_enthalpy_of_activation_H(m)
 # s = compute_entropy_of_activation_S(m)
@@ -103,28 +99,28 @@ def compute_moisture_content(dt, k, moisture_content):
 # axs[0].plot(m, h, label='Enthalpy H')
 # axs[1].plot(m, s, label='Entropy S')
 # axs[2].plot(m, k, label='k')
-# axs[3].plot(m, r_r, label='Reaction rate')
+# # axs[3].plot(m, r_r, label='Reaction rate')
 #
 # axs[0].set(ylim=[0, 450000])
 # axs[1].set(ylim=[-1000, 0], label='Entropy S')
 # axs[2].vlines(m[m_max_index], 0, 0.07, color='darkred', linestyles='dashed')
 #
-# axs[3].set(ylabel='dX/dt = k*X')
-# print(f'm_max is: {m[m_max_index]:.2f}')
-# axs[3].vlines(m[m_max_index], 0, 0.0035, color='darkred', linestyles='dashed')
+# # axs[3].set(ylabel='dX/dt = k*X')
+# # print(f'm_max is: {m[m_max_index]:.2f}')
+# # axs[3].vlines(m[m_max_index], 0, 0.0035, color='darkred', linestyles='dashed')
 #
 # axs[0].legend()
 # axs[1].legend()
 # axs[2].legend()
-# axs[3].legend()
+# # axs[3].legend()
 #
 # axs[0].grid()
 # axs[1].grid()
 # axs[2].grid()
-# axs[3].grid()
+# # axs[3].grid()
 #
 # plt.xlabel('Moisture content X')
-
+#
 # plt.show()
 
 
