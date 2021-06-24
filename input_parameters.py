@@ -33,9 +33,19 @@ glass_temp_lactose = 101 + kelvin                                               
 particle_density = 1500                                                         # kg/m^3
 particle_diameter = 0.000002                                                    # m, from page 46 in thesis
 heat_of_sorption = (185.55 * 1000 / 342.3) * 1000                               # delta_H, J/kg, enthalpy of sorption, kJ/mol * mol/g * g/kg
-heat_of_crystallization = 43.1 * 1000                                           # delta_H, J/kg, enthalpy of crystallization, kJ/mol * mol/g * g/kg
+heat_of_sorption = 542 * 1000                                                   # delta_H, J/kg, enthalpy of sorption, kJ/mol * mol/g * g/kg
+
+heat_of_sorption = 12.3                                                         # kcal/mol
+heat_of_sorption *= 4184                                                        # kcal to J
+heat_of_sorption /= molar_mass_moisture                                         # J/mol / kg/mol = J/kg
+h_fg = 2.5                                  # J/kg, math modelling
+heat_of_sorption= h_fg * 1000
+heat_of_sorption= 30 #* 1000     # J/kg, thesis NZ crystallization, heat of solution
+
+heat_of_crystallization = 43.1 * 1000                                           # delta_H, J/kg, enthalpy of crystallization
 particle_heat_capacity = 417.6 * 1000/342.3                                     # C_P,P & C_P,WP, heat cap particle, J/(kg * K)
 conductivity_particle = 0.1                                                     # W/(m*K), lambda, conductivity p
+specific_surface_area = 200                                                     # m2/kg, SSA
 
 
 # Material specific for gas and powder
@@ -58,10 +68,10 @@ rotation_time_interval = 19 * 60                                                
 rotation_time_interval = 58 * 60                                                # s after which to rotate
 
 temp_initial = kelvin + 35                                                      # K, room temperature 24 degrees
-temp_initial = kelvin + 24                                                      # K, room temperature 24 degrees
+temp_initial = kelvin + 25                                                      # K, room temperature 24 degrees
 temp_walls = temp_initial                                                       # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                             # humidity in bed, starting condition
-relative_humidity_gas_inlet = 0.45                                              # humidity of flowing gas
+relative_humidity_gas_inlet = 0.58                                              # humidity of flowing gas
 relative_humidity_gas_end = 0.2                                                 # humidity at end of cylinder
 pressure_ambient = 101325                                                       # atmospheric pressure, Pa
 
