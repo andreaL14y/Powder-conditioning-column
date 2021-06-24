@@ -64,7 +64,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
                               amorphous_material_vector * (relative_humidity - equilibrium_state_am))
 
     # total_equilibrium_term_new = ((1 - amorphous_material_vector) * (equilibrium_state_cryst_new - moisture_particle_cryst_vector) +
-    #                           amorphous_material_vector * (equilibrium_state_am - moisture_particle_am_vector)) #TODO: CHANGED
+    #                           amorphous_material_vector * (equilibrium_state_am - m_particle_am_vector)) #TODO: CHANGED
 
     #TODO: stop sorbing after start of crystallization
 
@@ -88,7 +88,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     #     print('Current m', moisture_particle_cryst_vector[0, 0])
 
     change_m_particle_am_sorption = constant * (relative_humidity - equilibrium_state_am)  # sorbing from gas
-    # change_m_particle_am_sorption = constant * (equilibrium_state_am - moisture_particle_am_vector)  # sorbing from gas
+    # change_m_particle_am_sorption = constant * (equilibrium_state_am - m_particle_am_vector)  # sorbing from gas
     change_m_particle_am = change_m_particle_am_sorption
 
     change_m_diffusion_gas = moisture_diffusivity * gas_density * (1 - porosity_powder) * laplacian_moisture_gas
@@ -112,7 +112,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     heat_of_sorption_particle = constant * total_equilibrium_term * heat_of_sorption
     heat_transfer_particle  = heat_transfer_coefficient * specific_surface_area * (temp_gas_vector-temp_particle_vector)
 
-    # enthalpy_of_activation = compute_enthalpy_of_activation_H(moisture_particle_am_vector)
+    # enthalpy_of_activation = compute_enthalpy_of_activation_H(m_particle_am_vector)
 
     # heat_of_cryst_particle  = heat_of_crystallization * (-change_amorphous_material * mass_powder/(n_space_steps * n_height_steps) )
     heat_of_cryst_particle  = heat_of_crystallization * constant * (-change_amorphous_material)     # kind of copied from heat of sorption
@@ -249,3 +249,8 @@ def create_matrices(moisture_matrix, values_per_feature, n_height_steps, n_space
 #
 # test = compute_amorphicity(temp_vector, rh_vector, am_vector)
 # print(test)
+
+
+temp =  np.array([[1, 1, 1], [1, 2, 1], [0, 0, 0]])
+test = compute_laplacian_vector(temp, 1, 1, 1, 1)
+print(test)
