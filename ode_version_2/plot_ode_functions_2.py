@@ -7,19 +7,22 @@ import matplotlib.patches as mpatches
 from matplotlib.widgets import Slider
 
 def plot_sections_over_time(
-        moisture_gas_vector, moisture_particle_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
-        height_of_interest, n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in,
-        moisture_particle_initial, moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle):
+        moisture_gas_vector, moisture_particle_vector_c, moisture_particle_vector_a, temp_gas_vector,
+        temp_particle_vector, amorphous_material_vector, height_of_interest, n_space_steps, discrete_time,
+        moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial, moisture_particle_saturated,
+        moisture_a_initial, moisture_a_sat, temp_min, kelvin, hours, max_temp_gas, max_temp_particle):
     epsilon = 0.001
     height_of_interest -= 1
-    fig, ax = plt.subplots(n_space_steps, 5, figsize=(20, 13))
+    # fig, ax = plt.subplots(n_space_steps, 5, figsize=(20, 13))
+    fig, ax = plt.subplots(2, 6, figsize=(20, 13))
     fig.suptitle(f'Moisture, temperature & amorphous material in cylinder sections over time. '
                  f'Total time: {int(hours)} hours.', fontsize=16)
     ax[0, 0].set_title('Moisture Gas')
-    ax[0, 1].set_title('Moisture Particle')
-    ax[0, 2].set_title('Temp Gas')
-    ax[0, 3].set_title('Temp Particle')
-    ax[0, 4].set_title('Amount amorphous')
+    ax[0, 1].set_title('Moisture Cryst Particle')
+    ax[0, 2].set_title('Moisture Am Particle')
+    ax[0, 3].set_title('Temp Gas')
+    ax[0, 4].set_title('Temp Particle')
+    ax[0, 5].set_title('Amount amorphous')
 
     # Set styles
     moisture_color = 'navy'
@@ -29,7 +32,8 @@ def plot_sections_over_time(
     saturated_color = 'lightcoral'
     amorph_color = 'green'
 
-    for step in range(n_space_steps):
+    # for step in range(n_space_steps):
+    for step in range(2):
         ax[step, 0].set_ylabel(f'Section {step + 1}                      ', rotation=0, size='large')
         ax[step, 0].plot(discrete_time, moisture_gas_vector[:, height_of_interest, step], c=moisture_color)
         patch = mpatches.Patch(color=moisture_color, label=f'Y {step}')
@@ -44,51 +48,53 @@ def plot_sections_over_time(
                          ha='left', va='center')
 
 
-        ax[step, 1].plot(discrete_time, moisture_particle_vector[:, height_of_interest, step],
-                         c=moisture_color)
+        ax[step, 1].plot(discrete_time, moisture_particle_vector_c[:, height_of_interest, step], c=moisture_color)
         patch = mpatches.Patch(color=moisture_color, label=f'X {step}')
 
         # Add lines max and min
-        ax[step, 1].hlines(moisture_particle_initial, 0, discrete_time[-1], colors=initial_color,
-                           linestyles=initial_line)
+        ax[step, 1].hlines(moisture_particle_initial, 0, discrete_time[-1], colors=initial_color, linestyles=initial_line)
         ax[step, 1].text(hours * 4 / 5, moisture_particle_initial + 2 * epsilon,
                          ('{:.4f}'.format(moisture_particle_initial)), ha='left', va='center')
 
         ax[step, 1].hlines(moisture_particle_saturated, 0, discrete_time[-1], colors=saturated_color,
                            linestyles=initial_line)
-        ax[step, 1].text(1, moisture_particle_saturated - 2 * epsilon,
-                         ('{:.4f}'.format(moisture_particle_saturated)),
+        ax[step, 1].text(1, moisture_particle_saturated - 2 * epsilon, ('{:.4f}'.format(moisture_particle_saturated)),
                          ha='left', va='center')
 
+        ax[step, 2].plot(discrete_time, moisture_particle_vector_a[:, height_of_interest, step], c=moisture_color)
+        ax[step, 2].hlines(moisture_a_initial, 0, discrete_time[-1], colors=initial_color, linestyles=initial_line)
+        ax[step, 2].text(hours * 4 / 5, moisture_a_initial + 2 * epsilon, ('{:.4f}'.format(moisture_a_initial)), ha='left', va='center')
+        ax[step, 2].hlines(moisture_a_sat, 0, discrete_time[-1], colors=saturated_color, linestyles=initial_line)
+        ax[step, 2].text(1, moisture_a_sat - 2 * epsilon, ('{:.4f}'.format(moisture_a_sat)), ha='left', va='center')
 
-        ax[step, 2].plot(discrete_time, temp_gas_vector[:, height_of_interest, step], c=temp_color)
+
+        ax[step, 3].plot(discrete_time, temp_gas_vector[:, height_of_interest, step], c=temp_color)
         patch = mpatches.Patch(color=temp_color, label=f'{step}')
-        ax[step, 2].set_ylim(temp_min - 1, max_temp_gas + 1)
-        ax[step, 2].hlines(temp_min, 0, discrete_time[-1], colors=initial_color,
-                           linestyles=initial_line)
-        ax[step, 2].hlines(max_temp_gas, 0, discrete_time[-1], colors=saturated_color,
-                           linestyles=initial_line)
-        ax[step, 2].text(hours * 4 / 5, max_temp_gas - 0.7,
-                         ('{:.2f}'.format(max_temp_gas)), ha='left', va='center')
-
-
-        ax[step, 3].plot(discrete_time, temp_particle_vector[:, height_of_interest, step],
-                         c=temp_color)
-        patch = mpatches.Patch(color=temp_color, label=f'{step}')
-        ax[step, 3].set_ylim(temp_min - 1, max_temp_particle + 1)
+        ax[step, 3].set_ylim(temp_min - 1, max_temp_gas + 1)
         ax[step, 3].hlines(temp_min, 0, discrete_time[-1], colors=initial_color,
                            linestyles=initial_line)
-
-        ax[step, 3].hlines(max_temp_particle, 0, discrete_time[-1], colors=saturated_color,
+        ax[step, 3].hlines(max_temp_gas, 0, discrete_time[-1], colors=saturated_color,
                            linestyles=initial_line)
-        ax[step, 3].text(hours * 4 / 5, max_temp_particle - 0.7,
+        ax[step, 3].text(hours * 4 / 5, max_temp_gas - 0.7,
+                         ('{:.2f}'.format(max_temp_gas)), ha='left', va='center')
+
+        ax[step, 4].plot(discrete_time, temp_particle_vector[:, height_of_interest, step],
+                         c=temp_color)
+        patch = mpatches.Patch(color=temp_color, label=f'{step}')
+        ax[step, 4].set_ylim(temp_min - 1, max_temp_particle + 1)
+        ax[step, 4].hlines(temp_min, 0, discrete_time[-1], colors=initial_color,
+                           linestyles=initial_line)
+
+        ax[step, 4].hlines(max_temp_particle, 0, discrete_time[-1], colors=saturated_color,
+                           linestyles=initial_line)
+        ax[step, 4].text(hours * 4 / 5, max_temp_particle - 0.7,
                          ('{:.2f}'.format(max_temp_particle)), ha='left', va='center')
 
 
-        ax[step, 4].plot(discrete_time, amorphous_material_vector[:, height_of_interest, step], c=amorph_color)
-        ax[step, 4].set_ylim(-0.2, 1.2)
-        ax[step, 4].hlines(1, 0, discrete_time[-1], colors=initial_color, linestyles=initial_line)
-        ax[step, 4].hlines(0, 0, discrete_time[-1], colors=saturated_color, linestyles=initial_line)
+        ax[step, 5].plot(discrete_time, amorphous_material_vector[:, height_of_interest, step], c=amorph_color)
+        ax[step, 5].set_ylim(-0.1, np.max(amorphous_material_vector) + 0.01)
+        ax[step, 5].hlines(np.max(amorphous_material_vector), 0, discrete_time[-1], colors=initial_color, linestyles=initial_line)
+        ax[step, 5].hlines(0, 0, discrete_time[-1], colors=saturated_color, linestyles=initial_line)
 
         # ax[step, feature].legend(handles=[patch], loc="lower center")
         ax[step, 0].grid()
@@ -96,6 +102,7 @@ def plot_sections_over_time(
         ax[step, 2].grid()
         ax[step, 3].grid()
         ax[step, 4].grid()
+        ax[step, 5].grid()
     plt.savefig('system_over_time.pdf')
     plt.show()
 
