@@ -8,7 +8,7 @@ from plot_ode_functions_2 import *
 import time
 
 ################################## CHOOSE DISCRETIZATION ###############################################################
-max_time = 3 * 60 * 60                                # hours to seconds
+max_time = 1.5 * 60 * 60                                # hours to seconds
 n_space_steps = 10                                      # MUST BE EVEN NUMBER
 n_height_steps = int(n_space_steps/2)
 resolution = 5000                                       # Number of outputs, TODO: more for nn, k estimation?
@@ -54,13 +54,6 @@ print(f'Saturated moisture gas:'.ljust(tabs), '{:.3f}'.format(moisture_gas_initi
 
 print('\n       ***        STARTING COMPUTATION       ***        ')
 run_time_start = time.time()
-
-#params = crystallization_parameters
-# print(f'Parameters are:'.ljust(tabs), '[starting_point, k_parameter, rest]',
-#       f'\nT 20, RH 30:'.ljust(tabs), f' [{params[0, 0]:.2f},           {params[0, 1]:.2f},        {params[0, 2]:.2f}]',
-#       f'\nT 20, RH 80:'.ljust(tabs), f' [{params[1, 0]:.2f},           {params[1, 1]:.2f},        {params[1, 2]:.2f}]',
-#       f'\nT 60, RH 30:'.ljust(tabs), f' [{params[2, 0]:.2f},           {params[2, 1]:.2f},        {params[2, 2]:.2f}]',
-#       f'\nT 60, RH 60:'.ljust(tabs), f' [{params[3, 0]:.2f},           {params[3, 1]:.2f},        {params[3, 2]:.2f}]\n')
 
 if n_rotations > 0:
     for rotation in range(n_rotations):
@@ -180,10 +173,12 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 # plot_heat_flow(diff_heat_flow_powder, discrete_time, hours)
 #plot_heat_flow_slider(diff_heat_flow_powder, discrete_time, hours)
 
-# plot_sections_over_time(
-#     moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
-#     height_of_interest, n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in,
-#     moisture_particle_initial, moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
+plot_sections_over_time(
+    moisture_gas_vector, moisture_particle_cryst_vector, moisture_particle_am_vector, temp_gas_vector,
+    temp_particle_vector, amorphous_material_vector, height_of_interest, n_space_steps, discrete_time,
+    moisture_gas_initial_bed, moisture_gas_initial_in, moisture_cryst_particle_initial,
+    moisture_cryst_particle_saturated, moisture_am_particle_initial, moisture_am_particle_saturated, temp_min, kelvin,
+    hours, max_temp_gas, max_temp_particle)
 
 # plot_heatmap(
 #     moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
