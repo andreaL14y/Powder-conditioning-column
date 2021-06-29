@@ -1,6 +1,10 @@
 import numpy as np
-from moisture_content_equilibrium import alpha_parameter_am, N_am, alpha_parameter_cryst, N_cryst, \
-    compute_GAB_equilibrium_moisture_cryst, compute_GAB_equilibrium_moisture_am
+import scipy.optimize
+from scipy.integrate import odeint
+
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 ########################################### PARAMETERS #################################################################
 # Constants
@@ -17,7 +21,7 @@ glass_temp_water_1 = 136                                                        
 glass_temp_water_2 = 165                                                        # glass transition water alt 2, Kelvin
 gas_viscosity = 10 ** -5                                                        # mu_G, kg/(m*s)
 moisture_diffusivity = 2.42 * 10 ** -5                                          # D_G, m^2/s
-molar_mass_moisture = 18/1000                                                   # kg/mol for water vapor
+molar_mass_moisture = 18/1000                                                   # kg/mol for water
 molar_mass_dry_air = 28.97/1000                                                 # kg/mol
 
 moisture_vapor_heat_capacity = 2000                                             # J/(kg*K), C_PV, heat cap water vapor
@@ -40,7 +44,7 @@ heat_of_sorption *= 4184                                                        
 heat_of_sorption /= molar_mass_moisture                                         # J/mol / kg/mol = J/kg
 h_fg = 2.5                                  # J/kg, math modelling
 heat_of_sorption= h_fg * 1000
-heat_of_sorption= 30 #* 1000     # J/kg, thesis NZ crystallization, heat of solution
+heat_of_sorption= 30 * 1000     # J/kg, thesis NZ crystallization, heat of solution
 
 heat_of_crystallization = 43.1 * 1000                                           # delta_H, J/kg, enthalpy of crystallization
 particle_heat_capacity = 417.6 * 1000/342.3                                     # C_P,P & C_P,WP, heat cap particle, J/(kg * K)
@@ -50,8 +54,8 @@ specific_surface_area = 200                                                     
 
 # Material specific for gas and powder
 porosity_powder = 0.5
-# # N_am = 1                                                                           # Parameter, assume 1
-# N_am = N_am                                                                           # Parameter, assume 1
+N_cryst = 0.9
+alpha_parameter_cryst = 1733
 
 # Variables
 amorphous_material_initial = 0.16                                               # 16 % am left in batch L6.5 before cond, page 82 thesis
