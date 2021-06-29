@@ -1,8 +1,8 @@
 from v_ode_functions_2 import*
 from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1
 counter = 0
-from art_functions import compute_entropy_of_activation_S, compute_enthalpy_of_activation_H, compute_crystal_growth_rate
-from moisture_content_equilibrium import compute_air_equilibrium
+from old_files.art_functions import compute_crystal_growth_rate
+from plot_functions import compute_air_equilibrium
 from moisture_sorption_constant import compute_moisture_change
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
