@@ -1,10 +1,11 @@
-from input_parameters import*
 from v_ode_functions_2 import*
 # from find_k_from_data import crystallization_parameters, crystallization_speed_curves
-from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1, glass_temp_water_2
+from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1
+
 counter = 0
-from art_functions import compute_entropy_of_activation_S, compute_enthalpy_of_activation_H, compute_crystal_growth_rate
-from moisture_content_equilibrium import compute_air_equilibrium, compute_GAB_equilibrium_moisture_am, compute_GAB_equilibrium_moisture_cryst
+from old_files.art_functions import compute_crystal_growth_rate
+from plot_functions import compute_air_equilibrium
+
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
 def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_steps):
