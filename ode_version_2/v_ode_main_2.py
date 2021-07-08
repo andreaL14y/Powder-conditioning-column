@@ -1,8 +1,6 @@
 print('\n############################################ PROGRAM STARTED ############################################')
-from scipy.integrate import odeint
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from v_ode_functions_2 import *
 from v_ode_main_functions_2 import *
 from plot_ode_functions_2 import *
 import time
@@ -173,23 +171,23 @@ print('Avg amorphous material is:'.ljust(tabs), '{:.2f} %\n'.format(avg_amorphou
 # plot_heat_flow(diff_heat_flow_powder, discrete_time, hours)
 #plot_heat_flow_slider(diff_heat_flow_powder, discrete_time, hours)
 
-plot_sections_over_time(
-    moisture_gas_vector, moisture_particle_cryst_vector, moisture_particle_am_vector, temp_gas_vector,
-    temp_particle_vector, amorphous_material_vector, height_of_interest, n_space_steps, discrete_time,
-    moisture_gas_initial_bed, moisture_gas_initial_in, moisture_cryst_particle_initial,
-    moisture_cryst_particle_saturated, moisture_am_particle_initial, moisture_am_particle_saturated, temp_min, kelvin,
-    hours, max_temp_gas, max_temp_particle)
+# plot_sections_over_time(
+#     moisture_gas_vector, moisture_particle_cryst_vector, moisture_particle_am_vector, temp_gas_vector,
+#     temp_particle_vector, amorphous_material_vector, height_of_interest, n_space_steps, discrete_time,
+#     moisture_gas_initial_bed, moisture_gas_initial_in, moisture_cryst_particle_initial,
+#     moisture_cryst_particle_saturated, moisture_am_particle_initial, moisture_am_particle_saturated, temp_min, kelvin,
+#     hours, max_temp_gas, max_temp_particle)
 
 # plot_heatmap(
 #     moisture_gas_vector, moisture_particle_cryst_vector, temp_gas_vector, temp_particle_vector, height_of_interest,
 #     n_space_steps, discrete_time, moisture_gas_initial_bed, moisture_gas_initial_in, moisture_particle_initial,
 #     moisture_particle_saturated, temp_min, kelvin, hours, max_temp_gas, max_temp_particle)
 #
-slide_heat_map(
-    moisture_gas_vector, moisture_particle_am_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
-    temp_diff, temp_min, max_temp_particle, max_temp_gas, moisture_am_particle_initial,
-    moisture_cryst_particle_saturated, moisture_am_particle_saturated, moisture_gas_initial_bed,
-    moisture_gas_initial_in, amorphous_material_initial, hours)
+# slide_heat_map(
+#     moisture_gas_vector, moisture_particle_am_vector, temp_gas_vector, temp_particle_vector, amorphous_material_vector,
+#     temp_diff, temp_min, max_temp_particle, max_temp_gas, moisture_am_particle_initial,
+#     moisture_cryst_particle_saturated, moisture_am_particle_saturated, moisture_gas_initial_bed,
+#     moisture_gas_initial_in, amorphous_material_initial, hours)
 
 ############################################ SAVE DATA #################################################################
 # print('Do you want to save stuff Y/N?')
