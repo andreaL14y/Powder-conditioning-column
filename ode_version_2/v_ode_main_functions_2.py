@@ -1,11 +1,8 @@
 from v_ode_functions_2 import*
-# from find_k_from_data import crystallization_parameters, crystallization_speed_curves
-from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1
+from functions import *
 
 counter = 0
 from old_files.art_functions import compute_crystal_growth_rate
-from plot_functions import compute_air_equilibrium
-
 
 ###################################### MAIN EQUATIONS (1-4) ############################################################
 def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_steps):
@@ -144,6 +141,10 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     moisture_matrix_updated = np.concatenate([change_m_gas.flatten(), change_m_particle_cryst.flatten(),
                                               change_m_particle_am.flatten(), change_temp_gas.flatten(),
                                               change_temp_particle.flatten(), change_amorphous_material.flatten()])
+    # print('system_change:', system_change)
+    print('\n\ntype', type(moisture_matrix_updated))
+    print('dtype', moisture_matrix_updated.dtype)
+    print('dtype void_change', change_m_gas.dtype)
     return moisture_matrix_updated
 
 
