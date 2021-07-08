@@ -42,10 +42,12 @@ heat_of_sorption = 542 * 1000                                                   
 heat_of_sorption = 12.3                                                         # kcal/mol
 heat_of_sorption *= 4184                                                        # kcal to J
 heat_of_sorption /= molar_mass_moisture                                         # J/mol / kg/mol = J/kg
-h_fg = 2.5                                  # J/kg, math modelling
+h_fg = 2.5 * 10**6                                                              # J/kg, math modelling
 heat_of_sorption= h_fg * 1000
 heat_of_sorption= 30 * 1000     # J/kg, thesis NZ crystallization, heat of solution
 
+# POWDER
+density_powder = 500                                                            # kg/m3
 heat_of_crystallization = 43.1 * 1000                                           # delta_H, J/kg, enthalpy of crystallization
 particle_heat_capacity = 417.6 * 1000/342.3                                     # C_P,P & C_P,WP, heat cap particle, J/(kg * K)
 conductivity_particle = 0.1                                                     # W/(m*K), lambda, conductivity p
