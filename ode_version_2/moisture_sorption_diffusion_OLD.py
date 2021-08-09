@@ -14,14 +14,14 @@ def compute_system(initials, t, n_space_steps, step_length, verbose=False):
     amount_am = np.where(amount_am > amorphous_material_initial, amorphous_material_initial, amount_am)
     if verbose and counter % divider == 0:
         print('time', t)
-        # print('Total water:'.ljust(tabs), total_water)
+        # print('Total water:'.ljust(tabs), total_water_avg)
         # print('amount_am:'.ljust(tabs), amount_am)
 
     # m_void_conc = initials[0:n_space_steps]
     # m_particle_tot_conc = initials[n_space_steps:n_space_steps*2]
     # amount_am = initials[n_space_steps*2:n_space_steps*3]
-    # m_void = m_void_conc / (porosity_powder * gas_density)  # kg/kg water in void, max 0.0114
-    # total_water = m_void_conc + m_particle_tot_conc  # kg/m3 water in system
+    # m_void = m_void_conc / (porosity_powder * density_gas)  # kg/kg water in void, max 0.0114
+    # total_water_avg = m_void_conc + m_particle_tot_conc  # kg/m3 water in system
 
     ###################################### FRACTION ITERATION ##########################################################
     # m_void = np.where(m_void < 0, 0, m_void)                # Cannot be negative, or more than 1
@@ -30,7 +30,7 @@ def compute_system(initials, t, n_space_steps, step_length, verbose=False):
     # max_diff = 0.00011                                        # Update m_void as powder sorbs. Total water remains.
     # gas_fraction_max = compute_gas_fraction_max(amount_am, m_particle_am_conc_sat, m_particle_cryst_conc_sat, m_gas_conc_sat)
     # while_time_start = time.time()
-    # m_void = compute_H_and_M_gas_fractions(total_water, max_diff, m_void, p_saturated, amount_am, m_gas_sur,
+    # m_void = compute_H_and_M_gas_fractions(total_water_avg, max_diff, m_void, p_saturated, amount_am, m_gas_sur,
     #                                        n_space_steps, gas_fraction_min, gas_fraction_max, gas_fraction_initial)
     # while_time_this = time.time() - while_time_start
     # while_time += while_time_this
@@ -51,8 +51,8 @@ def compute_system(initials, t, n_space_steps, step_length, verbose=False):
     m_particle_am = compute_GAB_equilibrium_moisture_am(water_activity)
 
     m_particle_tot = m_particle_cryst * (1-amount_am) + m_particle_am * amount_am
-    m_particle_tot_conc_new = (1-porosity_powder) * particle_density * m_particle_tot
-    m_void_conc_new = m_void * porosity_powder * gas_density
+    m_particle_tot_conc_new = (1-porosity_powder) * density_particle * m_particle_tot
+    m_void_conc_new = m_void * porosity_powder * density_gas
 
     # m_particle_tot_conc_change  = m_particle_tot_conc_new - m_particle_tot_conc
     # m_void_change_sorption     = m_void_conc_new - m_void_conc
@@ -71,7 +71,7 @@ def compute_system(initials, t, n_space_steps, step_length, verbose=False):
         print('')
 
     # OLD WAY NO FRACTION
-    # m_void              = m_void_conc/(gas_density * porosity_powder)                               # fraction
+    # m_void              = m_void_conc/(density_gas * porosity_powder)                               # fraction
     # water_activity      = compute_water_activity_from_m_void(m_void, p_saturated)
     #
     # m_particle_cryst    = compute_GAB_equilibrium_moisture_cryst(water_activity)
@@ -91,9 +91,9 @@ def compute_system(initials, t, n_space_steps, step_length, verbose=False):
     #                    (1 - amount_am) * derivative_cryst #+ \
     #                    # change_amorph * (m_particle_am - m_particle_cryst_sat) * 100
     #
-    # derivative_total *= particle_density * (1-porosity_powder)                                      # kg/m3
+    # derivative_total *= density_particle * (1-porosity_powder)                                      # kg/m3
     # m_void_change_cr = change_amorph * (m_particle_am - m_particle_cryst_sat)                       # fraction
-    # m_void_change_cr *= particle_density * (1 - porosity_powder)                                    # kg/m3
+    # m_void_change_cr *= density_particle * (1 - porosity_powder)                                    # kg/m3
     # m_void_change_cr /= 3000
     # top = diffusion #- m_void_change_cr #* (t - t_prev)
     # bottom = porosity_powder + (1-porosity_powder) * derivative_total
@@ -124,14 +124,14 @@ def plot_tam():
 
     ########################################### MOISTURE ###############################################################
     axs[0, 0].hlines(m_gas_sat, -1, hours+1, label='Sat sur', linestyles='--', color=sat_color)
-    # axs[0, 0].plot(time, m_void_conc_total, label='Tot', color=m_color)
+    # axs[0, 0].plot(time, m_void_conc_avg, label='Tot', color=m_color)
     axs[0, 0].plot(time, m_void_total[:], label='Tot', color=m_color)
-    # axs[0, 0].plot(time, m_void_conc_total_all[:, 0], label='0', color=m_color_light, linestyle='--')
+    # axs[0, 0].plot(time, m_void_conc_all[:, 0], label='0', color=m_color_light, linestyle='--')
     axs[0, 0].plot(time, m_void_total_all[:, 0], label='0', color=m_color_light, linestyle='--')
-    # axs[0, 0].plot(time, m_void_conc_total_all[:, int(n_space_steps/3)], label=f'{int(n_space_steps/3)}', color='cyan', linestyle='--')
+    # axs[0, 0].plot(time, m_void_conc_all[:, int(n_space_steps/3)], label=f'{int(n_space_steps/3)}', color='cyan', linestyle='--')
     axs[0, 0].plot(time, m_void_total_all[:, int(n_space_steps/3)], label=f'{int(n_space_steps/3)}', color='cyan', linestyle='--')
-    # axs[0, 0].plot(time, m_void_conc_total_all[:, int(2 * n_space_steps/3)], label=f'{int(2 * n_space_steps/3)}', color='darkcyan', linestyle='--')
-    # axs[0, 0].plot(time, m_void_conc_total_all[:, n_space_steps-1], label=f'{n_space_steps-1}', color=m_color, linestyle='--')
+    # axs[0, 0].plot(time, m_void_conc_all[:, int(2 * n_space_steps/3)], label=f'{int(2 * n_space_steps/3)}', color='darkcyan', linestyle='--')
+    # axs[0, 0].plot(time, m_void_conc_all[:, n_space_steps-1], label=f'{n_space_steps-1}', color=m_color, linestyle='--')
     axs[0, 0].legend()
     axs[0, 0].grid(color=grid_color, linestyle='-', linewidth=0.2)
     axs[0, 0].set_xlim(x_min, x_max)
@@ -142,8 +142,8 @@ def plot_tam():
     axs[1, 0].plot(time, m_particle_am_vector, label='Am', color=m_color)
     axs[1, 0].plot(time, m_particle_am_all_vector[:, 0], label='0', color=m_color_light, linestyle='--')
     axs[1, 0].plot(time, m_particle_am_all_vector[:, int(n_space_steps/3)], label=f'{int(n_space_steps/3)}', color='cyan', linestyle='--')
-    # axs[1, 0].plot(time, m_particle_am_all_vector[:, int(2 * n_space_steps/3)], label=f'{int(2 * n_space_steps/3)}', color='darkcyan', linestyle='--')
-    # axs[1, 0].plot(time, m_particle_am_all_vector[:, -1], label=f'{n_space_steps-1}', color=m_color, linestyle='--')
+    # axs[1, 0].plot(time, m_particle_am_all[:, int(2 * n_space_steps/3)], label=f'{int(2 * n_space_steps/3)}', color='darkcyan', linestyle='--')
+    # axs[1, 0].plot(time, m_particle_am_all[:, -1], label=f'{n_space_steps-1}', color=m_color, linestyle='--')
     axs[1, 0].legend()
     axs[1, 0].grid(color=grid_color, linestyle='-', linewidth=0.2)
     axs[1, 0].set_xlim(x_min, x_max)
@@ -157,7 +157,7 @@ def plot_tam():
     axs[2, 0].plot(time, total_water_all[:, int(n_space_steps/3)], label=f'{int(n_space_steps/3)}', color='cyan', linestyle='--')
     # axs[2, 0].plot(time, total_water_all[:, int(2 * n_space_steps/3)], label=f'{int(2 * n_space_steps/3)}', color='darkcyan', linestyle='--')
     # axs[2, 0].plot(time, total_water_all[:, -1], label=f'{n_space_steps-1}', color=m_color, linestyle='--')
-    # axs[2, 0].plot(time, m_particle_cryst_vector, label='Cr', color='lightsteelblue')
+    # axs[2, 0].plot(time, m_particle_cryst_avg, label='Cr', color='lightsteelblue')
     axs[2, 0].grid(color=grid_color, linestyle='-', linewidth=0.2)
     axs[2, 0].set_xlim(x_min, x_max)
     axs[2, 0].set_title('Total moisture system')
@@ -188,7 +188,7 @@ def plot_tam():
     axs[1, 1].set(xlabel='Time, hours', ylabel='Am material, kg/kg lactose')
 
     # axs[2, 1].hlines(m_particle_cryst_sat, -1, hours+1, label='Saturated cryst', color=sat_color, linestyles='--')
-    # axs[2, 1].plot(time, m_particle_cryst_vector, label='Crystalline', color=m_color)
+    # axs[2, 1].plot(time, m_particle_cryst_avg, label='Crystalline', color=m_color)
     axs[2, 1].plot(time, m_powder_diffs, label='Diff moisture', color=m_color)
     axs[2, 1].grid(color=grid_color, linestyle='-', linewidth=0.2)
     axs[2, 1].set_xlim(x_min, x_max)
@@ -231,8 +231,8 @@ def plot_tam():
 n_space_steps = 4
 density_powder = 300
 while_time = 0
-# porosity_powder = 1 - density_powder/particle_density
-# porosity_powder = density_powder/particle_density
+# porosity_powder = 1 - density_powder/density_particle
+# porosity_powder = density_powder/density_particle
 
 weight = 0.00015                            # kg, 150 mg
 weight = 0.00015                            # kg, 150 mg
@@ -251,7 +251,7 @@ resolution = 1000
 time_step = seconds/resolution                      # each step in time is this many seconds, s
 discrete_time = np.linspace(0, seconds, resolution)
 
-m_gas_conc_initial_vector = np.zeros(n_space_steps) + m_gas_conc_initial
+m_gas_conc_initial_vector = np.zeros(n_space_steps) + m_void_conc_initial
 initial_amorphicity_vector = np.zeros(n_space_steps) + amorphous_material_initial
 m_particle_tot_conc_initial_vector = np.zeros(n_space_steps) + m_particle_tot_conc_initial
 # initials = np.concatenate([m_gas_conc_initial_vector, m_particle_tot_conc_initial_vector, initial_amorphicity_vector])      # kg/m3, kg/kg
@@ -263,16 +263,16 @@ def print_info():
     print('############################################# CONDITIONS #############################################')
     print('Water activity surroundings:'.ljust(tabs), f'{water_activity_sur:.2f}')
     print('Moisture in the surrounding as fraction:'.ljust(tabs), f' {m_gas_sur:.5f}')
-    print('Initial moisture gas as fraction:'.ljust(tabs), f'{m_gas_initial:.5f}')
-    print('Initial moisture gas as conc:'.ljust(tabs), f'{m_gas_conc_initial:.5f} kg/m3')
+    print('Initial moisture gas as fraction:'.ljust(tabs), f'{m_void_initial:.5f}')
+    print('Initial moisture gas as conc:'.ljust(tabs), f'{m_void_conc_initial:.5f} kg/m3')
     print('Saturated moisture gas as conc:'.ljust(tabs), f'{m_gas_conc_sat:.5f} kg/m3')
     print('Saturated moisture gas:'.ljust(tabs), f'{m_gas_sur:.5f} kg/m3\n')
 
-    print('Initial moisture cryst powder as fraction:'.ljust(tabs), f'{m_powder_cryst_initial:.5f}')
-    print('Initial moisture cryst powder as conc:'.ljust(tabs), f'{m_powder_cryst_conc_initial:.5f} kg/m3')
+    print('Initial moisture cryst powder as fraction:'.ljust(tabs), f'{m_particle_cryst_initial:.5f}')
+    print('Initial moisture cryst powder as conc:'.ljust(tabs), f'{m_particle_cryst_conc_initial:.5f} kg/m3')
 
-    print('Initial moisture am powder as fraction:'.ljust(tabs), f'{m_powder_am_initial:.5f}')
-    print('Initial moisture am powder as conc:'.ljust(tabs), f'{m_powder_am_conc_initial:.5f} kg/m3\n')
+    print('Initial moisture am powder as fraction:'.ljust(tabs), f'{m_particle_am_initial:.5f}')
+    print('Initial moisture am powder as conc:'.ljust(tabs), f'{m_particle_am_conc_initial:.5f} kg/m3\n')
 
     print('Total powder water content at beginning:'.ljust(tabs), f'{m_particle_tot_conc_initial:.5f}')
     print('Total powder water content at saturation:'.ljust(tabs), f'{m_particle_tot_conc_sat:.5f}\n')
@@ -291,7 +291,7 @@ computation_tot_time = time.time() - computation_start_time
 while_time_fraction = while_time/computation_tot_time
 
 print('############################################# COMPUTATION COMPLETE #############################################')
-# m_void_conc_total_all       = computed_system[:, 0:n_space_steps]
+# m_void_conc_all       = computed_system[:, 0:n_space_steps]
 # m_particle_tot_conc_all     = computed_system[:, n_space_steps:n_space_steps*2]
 # amorphicity_all             = computed_system[:, n_space_steps*2:n_space_steps*3]
 # amorphicity_all             = normalize_data(amorphicity_all, zero_one=False)
@@ -310,14 +310,14 @@ for t in range(resolution):
     #     print('Calculating step ', t, 'of', resolution)
     m_void_total_all[t, :] = compute_H_and_M_gas_tables(amorphicity_all[t, :], total_water_all[t, :])
 
-m_void_conc_total_all = m_void_total_all * porosity_powder * gas_density
+m_void_conc_total_all = m_void_total_all * porosity_powder * density_gas
 amorphicity_all             = normalize_data(amorphicity_all, zero_one=False)
 
 print('Result:')
 print('Total time:'.ljust(tabs), computation_tot_time)
 print('Time fraction used in while loop:'.ljust(tabs), while_time_fraction)
-# print('m_void_conc_total_all', computed_system[0, 0:n_space_steps])
-# print('m_void_conc_total_all', computed_system[1, 0:n_space_steps], '\n')
+# print('m_void_conc_all', computed_system[0, 0:n_space_steps])
+# print('m_void_conc_all', computed_system[1, 0:n_space_steps], '\n')
 #
 # print('m_particle_tot_conc_all', computed_system[0, n_space_steps:n_space_steps*2])
 # print('m_particle_tot_conc_all', computed_system[1, n_space_steps:n_space_steps*2])
@@ -346,13 +346,13 @@ for n in range(n_space_steps):
 
 
 m_void_conc_total /= (n_space_steps)
-m_void_total = m_void_conc_total/(porosity_powder * gas_density)
+m_void_total = m_void_conc_total/(porosity_powder * density_gas)
 amorphicity_total /= n_space_steps
 total_water /= n_space_steps
 # m_particle_tot_conc_total /= n_space_steps
 
-m_void_tot_vector               = m_void_conc_total/(gas_density * porosity_powder)
-m_void_all_vector               = m_void_conc_total_all/(gas_density * porosity_powder)
+m_void_tot_vector               = m_void_conc_total/(density_gas * porosity_powder)
+m_void_all_vector               = m_void_conc_total_all/(density_gas * porosity_powder)
 
 water_activity_void_vector      = compute_water_activity_from_m_void(m_void_tot_vector, p_saturated)
 water_activity_all_vector       = compute_water_activity_from_m_void(m_void_all_vector, p_saturated)
@@ -364,9 +364,9 @@ m_particle_am_vector            = compute_GAB_equilibrium_moisture_am(water_acti
 m_particle_am_all_vector        = compute_GAB_equilibrium_moisture_am(water_activity_all_vector)
 
 m_powder_total                  = m_particle_am_vector * amorphicity_total + m_particle_cryst_vector * (1-amorphicity_total)
-m_powder_conc_total             = m_powder_total * particle_density * (1-porosity_powder)
+m_powder_conc_total             = m_powder_total * density_particle * (1 - porosity_powder)
 m_powder_total_all_vector       = m_particle_am_all_vector * amorphicity_all + m_particle_cryst_all_vector * (1-amorphicity_all)
-m_powder_conc_all_vector        = m_powder_total_all_vector * particle_density * (1-porosity_powder)
+m_powder_conc_all_vector        = m_powder_total_all_vector * density_particle * (1 - porosity_powder)
 
 tg_s            = compute_glass_temp_mix(1 - m_particle_am_vector, glass_temp_lactose, glass_temp_water_1)
 tg_s_all        = compute_glass_temp_mix(1 - m_particle_am_all_vector, glass_temp_lactose, glass_temp_water_1)
@@ -375,8 +375,8 @@ t_tg_diff_all   = temp_initial - tg_s_all
 
 m_powder_diffs = m_powder_total[1:] - m_powder_total[:-1]                   # fraction, kg water/kg dry
 m_powder_diffs = np.insert(m_powder_diffs, 0, m_powder_diffs[0], axis=0)
-# m_powder_diffs[m_powder_diffs < 0] = 0
-# print(m_powder_diffs[0:10])
+# m_powder_diffs_avg[m_powder_diffs_avg < 0] = 0
+# print(m_powder_diffs_avg[0:10])
 
 am_am_diffs = amorphicity_total[1:] - amorphicity_total[:-1]
 am_am_diffs = np.insert(am_am_diffs, 0, 0, axis=0)
