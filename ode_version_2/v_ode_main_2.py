@@ -107,7 +107,7 @@ if n_rotations > 0:
 else:
     avg_amorphous_material = np.average(computed_system[ -1, (5 * values_per_feature):(6 * values_per_feature)])
 
-diff_heat_flow_powder = (temp_particle_vector[1:, :, :] - temp_particle_vector[:-1, :, :]) * particle_heat_capacity
+diff_heat_flow_powder = (temp_particle_vector[1:, :, :] - temp_particle_vector[:-1, :, :]) * heat_capacity_particle
 
 ############################################ PLOT ######################################################################
 # Convert to easier-to-read units
