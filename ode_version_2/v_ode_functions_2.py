@@ -16,26 +16,26 @@ def compute_velocity(volumetric_flow_rate_liters_per_minute):
 
 def compute_specific_surface_area():
     r = particle_diameter / 2
-    specific_surface_area = 3 / (r * particle_density)
+    specific_surface_area = 3 / (r * density_particle)
     return specific_surface_area
 
 
 def compute_heat_transfer_coefficient(molar_concentration_moisture):
     reynolds_number = compute_mass_transfer_coefficient_vector(molar_concentration_moisture)[2]
     j_m = 0.61 * reynolds_number ** -0.41
-    h_GP = (j_m * gas_density * gas_heat_capacity * superficial_velocity) / (
-            (gas_heat_capacity * gas_viscosity / conductivity_gas) ** (2 / 3))
+    h_GP = (j_m * density_gas * heat_capacity_air * superficial_velocity) / (
+            (heat_capacity_air * gas_viscosity / conductivity_gas) ** (2 / 3))
     return h_GP
 
 
 ######################################### RECURRENT ####################################################################
 def compute_mass_transfer_coefficient_vector(molar_concentration_vector):
-    superficial_mass_velocity = (4 * gas_density * flow_rate) / (np.pi * column_diameter ** 2)  # G_0
+    superficial_mass_velocity = (4 * density_gas * flow_rate) / (np.pi * column_diameter ** 2)  # G_0
 
-    particle_surface_area = porosity_powder * particle_density * specific_surface_area          # a
+    particle_surface_area = porosity_powder * density_particle * specific_surface_area          # a
 
     reynolds_number = superficial_mass_velocity / (particle_surface_area * gas_viscosity)       # Re
-    denominator = gas_viscosity / (gas_density * moisture_diffusivity)
+    denominator = gas_viscosity / (density_gas * moisture_diffusivity)
     j_m = 0.61 * reynolds_number ** -0.41
 
     k_gp_vector = j_m * (molar_concentration_vector * molar_mass_moisture) * superficial_velocity / \
