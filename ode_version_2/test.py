@@ -1,35 +1,53 @@
-from input_parameters import *
+from initial_conditions import *
+import time
+import numpy as np
+kelvin = 273.15
 
-weight = 0.00015                            # kg, 150 mg
-density_powder = 500                        # kg/m3
-volume = weight/density_powder              # m3
-diameter_vial = 0.005                       # m, 5 mm
-area_vial = np.pi * (diameter_vial/2)**2    # m2
+a = compute_pressure_water(25)
+print(a)
+a = compute_pressure_water(40)
+print(a)
+#
+def compute_H_and_M_iteratively(water_activity, total_water, temp_celsius, amount_am):
+    pressure_water = compute_pressure_water(temp_celsius)
+    m_void = 18 * water_activity * pressure_water/(29 * (pressure_ambient - water_activity * pressure_water))
 
-height = volume/area_vial
+    m_cryst = compute_GAB_equilibrium_moisture_cryst(water_activity)
+    m_am = compute_GAB_equilibrium_moisture_am(water_activity)
+    m_particle_tot = m_am * amount_am + m_cryst * (1 - amount_am)
 
-print('Height would be:\n', height, 'm\n', height*1000, 'mm')
+    W = m_void * porosity_powder * density_gas + m_particle_tot * (1 - porosity_powder) * density_particle
+    diff = (W - total_water)**2
+    error = diff.mean(axis=0)
+    return error
+
+cons = [{"type": "ineq", 'fun': lambda x: x}, {"type": "ineq", 'fun': lambda x: 1 - x}] # water_activity, total_water, temp_celsius, amount_am
+
+aw_sur_vector = relative_humidity_gas_inlet
+aw_sur_vector = 0.8
+total_water = system_conc_initial
+temp_celsius_prev = temp_initial_celsius #- 30
+amount_am = amorphous_material_initial
+
+comp_time = 0
+table_time = 0
+for i in range(2):
+    am_amorph = np.zeros(2) + amorphous_material_initial
+    total_water_avg = np.zeros(2) + total_water
+
+    # table_start = time.time()
+    # table_H = compute_H_and_M_gas_tables(am_amorph, total_water_avg)
+    # table_time += time.time() - table_start
+
+    start = time.time()
+    optimized_aw = scipy.optimize.minimize(compute_H_and_M_iteratively, aw_sur_vector, args=(total_water, temp_celsius_prev, amount_am),
+                                           constraints=cons, method='SLSQP', options={'ftol': 1e-6})
+    print(optimized_aw.x)
+    comp_time += time.time() - start
+
+print('Optimization time:', comp_time)
+print('Table time:', table_time)
+
+# print(optimized_aw)
 
 
-# Want to finish at 0.99998, 0.0000
-M = 0
-H = 1
-
-diff = H-M
-while abs(diff) > 0.001:
-    diff = 0.99998 - M
-    if diff > 0:
-        H = H * 0.5
-    else:
-        H = H * 1.01
-    M = 1-H
-
-
-gas_fraction = np.array([0, 0.5, 1, -1, 0])
-diff = np.array([1, 0.5, 1, 0, 0])
-max_diff = 0.5
-gas_to_min = 0.2
-
-print(gas_fraction)
-gas_fraction = np.where(diff > max_diff, gas_fraction - gas_to_min/2, gas_fraction)
-print(gas_fraction)
