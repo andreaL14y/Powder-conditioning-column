@@ -62,7 +62,7 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
                               amorphous_material_vector * (relative_humidity - equilibrium_state_am))
 
     # total_equilibrium_term_new = ((1 - amorphous_material_vector) * (equilibrium_state_cryst_new - moisture_particle_cryst_vector) +
-    #                           amorphous_material_vector * (equilibrium_state_am - m_particle_am_vector)) #TODO: CHANGED
+    #                           amorphous_material_vector * (equilibrium_state_am - m_particle_am_avg)) #TODO: CHANGED
 
     #TODO: stop sorbing after start of crystallization
 
@@ -86,37 +86,37 @@ def conditioning_column(moisture_matrix, t, space_step, n_space_steps, n_height_
     #     print('Current m', moisture_particle_cryst_vector[0, 0])
 
     change_m_particle_am_sorption = constant * (relative_humidity - equilibrium_state_am)  # sorbing from gas
-    # change_m_particle_am_sorption = constant * (equilibrium_state_am - m_particle_am_vector)  # sorbing from gas
+    # change_m_particle_am_sorption = constant * (equilibrium_state_am - m_particle_am_avg)  # sorbing from gas
     change_m_particle_am = change_m_particle_am_sorption
 
-    change_m_diffusion_gas = moisture_diffusivity * gas_density * (1 - porosity_powder) * laplacian_moisture_gas
-    change_m_absorption_gas = - constant * particle_density * porosity_powder * total_equilibrium_term
+    change_m_diffusion_gas = moisture_diffusivity * density_gas * (1 - porosity_powder) * laplacian_moisture_gas
+    change_m_absorption_gas = - constant * density_particle * porosity_powder * total_equilibrium_term
     change_m_gas = (change_m_diffusion_gas + change_m_absorption_gas + change_m_particle_am_crystallization) / \
-                   (gas_density * (1 - porosity_powder)) - gas_velocity * gradient_moisture_gas     # Added crystallization
+                   (density_gas * (1 - porosity_powder)) - gas_velocity * gradient_moisture_gas     # Added crystallization
 
 
     ##################################### UPDATE TEMP ##################################################################
     conduction_gas          = conductivity_gas * (1 - porosity_powder) * laplacian_temp_gas
-    heat_of_sorption_gas    = particle_density * porosity_powder * constant * moisture_vapor_heat_capacity * \
+    heat_of_sorption_gas    = density_particle * porosity_powder * constant * heat_capacity_vapor * \
                               (temp_gas_vector - temp_particle_vector) * total_equilibrium_term
 
-    heat_transfer_gas       = -heat_transfer_coefficient * particle_density * porosity_powder * \
+    heat_transfer_gas       = -heat_transfer_coefficient * density_particle * porosity_powder * \
                               specific_surface_area * (temp_gas_vector - temp_particle_vector)
 
     change_temp_gas         = (conduction_gas + heat_of_sorption_gas + heat_transfer_gas) / \
-                              (gas_density * (1 - porosity_powder) * gas_heat_capacity) - gas_velocity * gradient_temp_gas
+                              (density_gas * (1 - porosity_powder) * heat_capacity_air) - gas_velocity * gradient_temp_gas
 
-    conduction_particle     = conductivity_particle * laplacian_temp_particle / particle_density
+    conduction_particle     = conductivity_particle * laplacian_temp_particle / density_particle
     heat_of_sorption_particle = constant * total_equilibrium_term * heat_of_sorption
     heat_transfer_particle  = heat_transfer_coefficient * specific_surface_area * (temp_gas_vector-temp_particle_vector)
 
-    # enthalpy_of_activation = compute_enthalpy_of_activation_H(m_particle_am_vector)
+    # enthalpy_of_activation = compute_enthalpy_of_activation_H(m_particle_am_avg)
 
     # heat_of_cryst_particle  = heat_of_crystallization * (-change_amorphous_material * mass_powder/(n_space_steps * n_height_steps) )
     heat_of_cryst_particle  = heat_of_crystallization * constant * (-change_amorphous_material)     # kind of copied from heat of sorption
 
     change_temp_particle    = (conduction_particle + heat_of_sorption_particle + heat_transfer_particle + heat_of_cryst_particle) / \
-                           particle_heat_capacity
+                              heat_capacity_particle
 
 
     ##################################### PRINT STUFF ##################################################################
