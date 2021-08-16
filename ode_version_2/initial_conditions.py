@@ -1,73 +1,57 @@
 from functions import *
 
-def compute_density_air(temp_celsius, H):
-    top = kelvin
-    bottom = 22.4 * (kelvin + temp_celsius) * (1/29 + H/18)
-    density = top/bottom
-    return density
+p_saturated                         = compute_p_saturated_vector(temp_initial)
 
-p_saturated                     = compute_p_saturated_vector(temp_initial)
+# Surroundings, RH 58
+water_activity_sur              = relative_humidity_gas_inlet
+m_gas_sur                       = compute_H_from_aw_temp(water_activity_sur, temp_initial_celsius)
+partial_pressure_moisture       = compute_pressure_water(temp_initial_celsius)
+vapor_pressure_sur              = water_activity_sur * partial_pressure_moisture
+m_particle_am_sat               = compute_GAB_equilibrium_moisture_am(relative_humidity_gas_inlet)
+m_particle_cryst_sat            = compute_GAB_equilibrium_moisture_cryst(relative_humidity_gas_inlet)
+m_particle_tot_sat              = m_particle_cryst_sat * (1-amorphous_material_initial) + m_particle_am_sat * amorphous_material_initial
 
-# Initial surroundings, RH 58
-molar_conc_sur                  = compute_molar_concentration_vector(relative_humidity_gas_inlet, p_saturated, temp_initial)
-vapor_pressure_sur              = compute_partial_pressure_moisture_vector(molar_conc_sur, temp_initial)
-water_activity_sur              = vapor_pressure_sur / p_saturated
-m_gas_sur                       = 18 * vapor_pressure_sur/(29 * (pressure_ambient - vapor_pressure_sur))
-m_gas_conc_sat                  = m_gas_sur * porosity_powder * density_gas
 
 # Initial system, RH 20
-# Gas
 molar_concentration_void_initial= compute_molar_concentration_vector(relative_humidity_bed_initial, p_saturated, temp_initial)
 vapor_pressure_void_initial     = compute_partial_pressure_moisture_vector(molar_concentration_void_initial, temp_initial)
 water_activity_void_initial     = vapor_pressure_void_initial / p_saturated
-m_void_initial                   = 18 * vapor_pressure_void_initial / (29 * (pressure_ambient - vapor_pressure_void_initial))
-m_void_conc_initial              = m_void_initial * porosity_powder * density_gas
-
-# Particle
-m_particle_cryst_initial          = compute_GAB_equilibrium_moisture_cryst(water_activity_void_initial)
-m_particle_cryst_conc_initial     = m_particle_cryst_initial * (1 - porosity_powder) * density_particle
-m_particle_am_initial             = compute_GAB_equilibrium_moisture_am(water_activity_void_initial)
-m_particle_am_conc_initial        = m_particle_am_initial * (1 - porosity_powder) * density_particle
+m_void_initial                  = compute_H_from_aw_temp(water_activity_void_initial, temp_initial_celsius)
+m_particle_am_initial           = compute_GAB_equilibrium_moisture_am(water_activity_void_initial)
+m_particle_cryst_initial        = compute_GAB_equilibrium_moisture_cryst(water_activity_void_initial)
 m_particle_tot_initial          = m_particle_cryst_initial * (1 - amorphous_material_initial) + m_particle_am_initial * amorphous_material_initial
+
+
+gas_density_initial             = compute_density_air(temp_initial_celsius, m_void_initial)
+gas_density_sur                 = compute_density_air(temp_initial_celsius, m_gas_sur)
+
+# CONCENTRATIONS
+
+# Surroundings, RH 58
+m_gas_conc_sat                  = m_gas_sur * porosity_powder * gas_density_sur                             # kg/m3
+
+# Initial system, RH 20
+m_void_conc_initial             = m_void_initial * porosity_powder * gas_density_initial
+m_particle_cryst_conc_initial   = m_particle_cryst_initial * (1 - porosity_powder) * density_particle
+m_particle_am_conc_initial      = m_particle_am_initial * (1 - porosity_powder) * density_particle
 m_particle_tot_conc_initial     = m_particle_cryst_conc_initial * (1 - amorphous_material_initial) + m_particle_am_conc_initial * amorphous_material_initial
 
+# System
 system_conc_initial             = m_particle_cryst_conc_initial * (1 - amorphous_material_initial) + m_particle_am_conc_initial * amorphous_material_initial + m_void_conc_initial
 
-# Energy
+# ENERGY
 enthalpy_vapor_initial          = heat_capacity_vapor * temp_initial_celsius + heat_of_evaporation_water
 enthalpy_gas_initial            = heat_capacity_air * temp_initial_celsius + m_void_initial * enthalpy_vapor_initial
 enthalpy_surrounding_initial    = heat_capacity_air * temp_initial_celsius + m_gas_sur * enthalpy_vapor_initial
 enthalpy_particle_initial       = heat_capacity_particle * temp_initial_celsius + m_particle_tot_initial * heat_capacity_water * temp_initial_celsius
-enthalpy_powder_initial         = enthalpy_gas_initial * porosity_powder * density_gas + enthalpy_particle_initial * (1 - porosity_powder) * density_particle
-
-hot = 100
-enthalpy_vapor_hot          = heat_capacity_vapor * hot + heat_of_evaporation_water
-enthalpy_gas_hot            = heat_capacity_air * hot + m_void_initial * enthalpy_vapor_hot
-enthalpy_particle_hot       = heat_capacity_particle * hot + m_particle_tot_initial * heat_capacity_water * hot
-enthalpy_powder_hot         = enthalpy_gas_hot * porosity_powder * density_gas + enthalpy_particle_hot * (1 - porosity_powder) * density_particle
+enthalpy_powder_initial         = enthalpy_gas_initial * porosity_powder * gas_density_initial + enthalpy_particle_initial * (1 - porosity_powder) * density_particle
 
 # Saturated system
-m_particle_cryst_sat            = compute_GAB_equilibrium_moisture_cryst(relative_humidity_gas_inlet)
 m_particle_cryst_conc_sat       = m_particle_cryst_sat * (1 - porosity_powder) * density_particle
-m_particle_am_sat               = compute_GAB_equilibrium_moisture_am(relative_humidity_gas_inlet)
 m_particle_am_conc_sat          = m_particle_am_sat * (1 - porosity_powder) * density_particle
 m_particle_tot_conc_sat         = m_particle_cryst_conc_sat * (1-amorphous_material_initial) + m_particle_am_conc_sat * amorphous_material_initial
-m_particle_tot_sat              = m_particle_cryst_sat * (1-amorphous_material_initial) + m_particle_am_sat * amorphous_material_initial
 system_conc_sat                 = m_particle_cryst_conc_sat * (1-amorphous_material_initial) + m_particle_am_conc_sat * amorphous_material_initial + m_gas_conc_sat
-m_gas_sat                       = m_gas_conc_sat/(porosity_powder * density_gas)
-
-density_sat = compute_density_air(temp_initial_celsius, m_gas_sat)
-gas_density_initial = compute_density_air(temp_initial_celsius, m_void_initial)
-gas_density_sur = compute_density_air(temp_initial_celsius, m_gas_sur)
-
-gas_fraction = m_void_conc_initial / (m_void_conc_initial + m_particle_tot_conc_initial)
-gas_fraction_initial = gas_fraction
-gas_fraction_2 = m_gas_conc_sat/(m_gas_conc_sat + m_particle_tot_conc_sat)
-gas_fraction_min = gas_fraction_2
-
-gas_fraction_3 = m_gas_conc_sat/(m_gas_conc_sat + m_particle_cryst_conc_sat)
-gas_fraction_max_tot = gas_fraction_3
-
+# m_gas_sat                       = m_gas_conc_sat/(porosity_powder * gas_density_sur)
 
 ####################################### CREATE TABLES ##################################################################
 # H = np.linspace(m_void_initial, .01999, 10000)
