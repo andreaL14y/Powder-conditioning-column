@@ -1,5 +1,5 @@
 from input_parameters import *
-
+test = 0
 import_tables = 0
 # import_tables = 1
 if import_tables == 1:
@@ -35,7 +35,7 @@ def compute_glass_temp_mix(w1_lactose, t_g_lactose, t_g2):
 
 
 def compute_heat_of_sorption(water_activity, temp):
-
+    water_activity = np.where(water_activity == 0, 1e-5, water_activity)    # TODO: APPROXIMATION
     heat_of_sorption = - np.log(water_activity) * r_gas_constant * temp     # J/mol
     heat_of_sorption /= molar_mass_moisture                                 # J/mol / kg/mol = J/kg
     return heat_of_sorption
@@ -63,7 +63,16 @@ def compute_kinetics_avrami(am_amorph, temp_diff, verbose=False):
         if am_am == 0:
             change_amorphicity[n] = 0
         else:
-            K = c_3 * (np.exp(-c_1 / (R * (c_2 + temp_diff[n])))) ** 3
+            K_exp = -c_1 / (R * (c_2 + temp_diff[n]))
+            K = c_3 * (np.exp(K_exp)) ** 3
+            if K == 0 and test == 0:
+                print('K is', K)
+                print('am_am is', am_am)
+                print('am_cr is', am_cr)
+                print('temp_diff is', temp_diff)
+
+                K = 0.0001
+                # test = 1
             change_amorphicity_1 = n_A * K * am_cr
             change_amorphicity_2 = (-np.log(am_cr) / K) ** ((n_A - 1) / n_A)
             change_amorphicity[n] = change_amorphicity_1 * change_amorphicity_2
@@ -78,17 +87,11 @@ def compute_kinetics_avrami(am_amorph, temp_diff, verbose=False):
         print('Change total:'.ljust(tabs), change_amorphicity)  # positive
         print('Leaving function\n')
 
-    # if np.any(abs(change_amorphicity) > 1e-1):
-    #     print('\nIn compute_kinetics_avrami')
-    #     print(change_amorphicity)
 
     change_amorphicity = -change_amorphicity
     change_amorphicity[change_amorphicity > 0] = 0
     change_amorphicity[change_amorphicity < -1] = -1
 
-    # if np.any(abs(change_amorphicity) > 1e-5):
-    #     print(change_amorphicity)
-    #     print('Leaving function\n')
     return change_amorphicity
 
 
@@ -110,11 +113,6 @@ def compute_laplacian(array, boundary, step_length, verbose=False):
         print('Top:'.ljust(tabs), top)
         print('Laplacian:'.ljust(tabs), laplacian)
     return laplacian
-
-# m_void = np.array([4, -2, 2, 2])
-# m_surrounding = 0
-# a = compute_laplacian(m_void, m_surrounding, 1)
-# print(a)
 
 
 def normalize_data(data, zero_one = True):
@@ -149,29 +147,6 @@ def compute_temp_from_energy(H, M, total_energy, verbose=False):
     return temp_kelvin, temp_celsius
 
 
-def compute_temp_iteratively(temp_kelvin, H, M, total_energy, verbose=False):
-    if verbose:
-        print('\nIn')
-        print('Temp_kelvin:', temp_kelvin)
-
-    # temp_kelvin = temp_kelvin.flatten()
-    temp_celcius = temp_kelvin - kelvin
-    enthalpy_vapor = heat_capacity_vapor * temp_celcius + heat_of_evaporation_water
-    enthalpy_gas = heat_capacity_air * temp_celcius + H * enthalpy_vapor
-    enthalpy_solid = temp_celcius * (heat_capacity_particle + M * heat_capacity_water)
-
-    Q = enthalpy_gas * porosity_powder * density_gas + enthalpy_solid * (1 - porosity_powder) * density_particle
-    error = np.abs(total_energy - Q)
-    if verbose:
-        print('Error before mean:', error)
-    error = error.mean(axis=0)
-
-    if verbose:
-        print('Error after mean:', error)
-        print('Out')
-    return error
-
-
 def compute_pressure_water(temp_celsius):
     exponent = 23.4795 - (3990.56/(temp_celsius + 233.833))
     pressure_water = np.exp(exponent)
@@ -191,32 +166,37 @@ def compute_partial_pressure_moisture_vector(molar_concentration_vector, tempera
 
 ############################### MOISTURE ISOTHERMS AND EQUILIBRIUMS ####################################################
 def compute_GAB_equilibrium_moisture_am(water_activity, verbose=False):
-    equilibrium_moisture_particle_vector = M0_am * c_am * f_am * water_activity / ((1 - f_am * water_activity) * (1 - (1 - c_am) * f_am * water_activity))
+    water_activity_max = 0.6            # TODO: used to be 0.8
+    water_activity = np.where(water_activity > water_activity_max, water_activity_max, water_activity)
+    top = M0_am * c_am * f_am * water_activity
+    bottom = (1 - f_am * water_activity) * (1 - (1 - c_am) * f_am * water_activity)
+    # equilibrium_moisture_particle_vector = np.where(bottom == 0, 0.9, top/bottom)
+    equilibrium_moisture_particle_vector = top / bottom
     if verbose:
         print('\n')
         print(water_activity)
         print(equilibrium_moisture_particle_vector)
     # f(x) = moisture_particle(relative_humidity) = kg/kg
-    equilibrium_moisture_particle_vector = np.where(equilibrium_moisture_particle_vector > 1, 0.9, equilibrium_moisture_particle_vector)
+    # equilibrium_moisture_particle_vector = np.where(equilibrium_moisture_particle_vector > 1, 0.9, equilibrium_moisture_particle_vector)
     equilibrium_moisture_particle_vector = np.where(equilibrium_moisture_particle_vector < 0, 0, equilibrium_moisture_particle_vector)
     return equilibrium_moisture_particle_vector
 
 
-# a = compute_GAB_equilibrium_moisture_am(0.85)
-# print(a)
-def compute_GAB_equilibrium_moisture_cryst(water_activity):
-    # H = 1 + (1 - f_cr) * (f_cr * water_activity) ** h / (f_cr * (1 - water_activity))
-    H = 1
-    # H_prime = 1 + (H - 1) * (1 - f_cr * water_activity) / (H * (1 - water_activity)) * (h_cr + (1 - h_cr) * water_activity)
-    H_prime = 1
+def compute_GAB_equilibrium_moisture_cryst(water_activity, H_H = True):
+    water_activity_max = 0.9  # TODO: ??
+    water_activity = np.where(water_activity > water_activity_max, water_activity_max, water_activity)
+    if H_H:
+        H = 1
+        H_prime = 1
+    else:
+        H = 1 + (1 - f_cr) * (f_cr * water_activity) ** h_cr / (f_cr * (1 - water_activity))
+        H_prime = 1 + (H - 1) * (1 - f_cr * water_activity) / (H * (1 - water_activity)) * (h_cr + (1 - h_cr) * water_activity)
 
-    equilibrium_moisture_particle_vector = M0_cr * c_cr * f_cr * water_activity * H * H_prime /\
-                                           ((1 - f_cr * water_activity) * (1 + (c_cr * H - 1) * f_cr * water_activity))
-    equilibrium_moisture_particle_vector = np.where(equilibrium_moisture_particle_vector > 1, 0.9, equilibrium_moisture_particle_vector)
-    equilibrium_moisture_particle_vector = np.where(equilibrium_moisture_particle_vector < 0, 0, equilibrium_moisture_particle_vector)
+    top = M0_cr * c_cr * f_cr * water_activity * H * H_prime
+    bottom = (1 - f_cr * water_activity) * (1 + (c_cr * H - 1) * f_cr * water_activity)
+    equilibrium_moisture_particle_vector = top/bottom
     return equilibrium_moisture_particle_vector
-# a = compute_GAB_equilibrium_moisture_cryst(1)
-# print(a)
+
 
 def compute_derivative_m_GAB(water_activity, cryst=True):
     if cryst:
@@ -236,9 +216,10 @@ def compute_derivative_m_GAB(water_activity, cryst=True):
     return derivative
 
 
-def compute_water_activity_from_m_void(m_void, p_saturated):
+def compute_water_activity_from_m_void(m_void, temp_celsius):
     vapor_pressure = 29 * m_void * pressure_ambient / (18 + 29 * m_void)
-    water_activity = vapor_pressure / p_saturated
+    water_pressure = compute_pressure_water(temp_celsius)
+    water_activity = vapor_pressure / water_pressure
     water_activity = np.where(water_activity > 1, 0.99, water_activity)
     return water_activity
 
@@ -247,14 +228,6 @@ def compute_H_from_aw_temp(water_activity, temp_celsius):
     pressure_water = compute_pressure_water(temp_celsius)
     H = 18 * water_activity * pressure_water/(29 * (pressure_ambient - water_activity * pressure_water))
     return H
-
-def compute_moisture_change_am(water_activity, porosity, diffusion, laplacian):
-    derivative = compute_derivative_m_GAB(water_activity, cryst=False)
-
-    top = diffusion * laplacian
-    bottom = (1 - porosity) * derivative + porosity
-    moisture_change = top/bottom
-    return moisture_change
 
 
 def compute_H_and_M_gas_tables(am_amorph, total_weight):
@@ -298,15 +271,27 @@ def compute_H_and_M_gas_tables(am_amorph, total_weight):
     return m_void, extra_weight
 
 
-def compute_H_and_M_iteratively(water_activity, total_water, temp_celsius, amount_am):
-    m_void = compute_H_from_aw_temp(water_activity, temp_celsius)
+def compute_density_air(temp_celsius, H):
+    top = kelvin
+    bottom = 22.4 * (kelvin + temp_celsius) * (1/29 + H/18)
+    density = top/bottom
+    return density
 
+
+def compute_H_and_M_iteratively(water_activity, total_water, temp_celsius, amount_am):
+    # excess = np.where(water_activity >= 1, True, False)
+
+    m_void = compute_H_from_aw_temp(water_activity, temp_celsius)
     m_cryst = compute_GAB_equilibrium_moisture_cryst(water_activity)
     m_am = compute_GAB_equilibrium_moisture_am(water_activity)
     m_particle_tot = m_am * amount_am + m_cryst * (1 - amount_am)
+    # m_particle_tot = m_cryst
+    density_gas_vector = compute_density_air(temp_celsius, m_void)
 
-    W = m_void * porosity_powder * density_gas + m_particle_tot * (1 - porosity_powder) * density_particle
-    diff = (W - total_water)**2
+    W = m_void * porosity_powder * density_gas_vector + m_particle_tot * (1 - porosity_powder) * density_particle
+    # excess_amount = np.where(excess, total_water - W, 0)
+
+    diff = (W - total_water) * (W - total_water)
     error = diff.mean(axis=0)
     return error
 
@@ -354,32 +339,42 @@ def compute_H_and_M_gas_tables_new(am_amorph, total_weight, temp_celsius):  # W[
 
 
 ############################### CURVE FIT ACCORDING TO AZ ##############################################################
-def compute_moisture_particle_from_RH(relative_humidity, alpha, N):
-    moisture_particle = (-np.log(1-relative_humidity)/alpha)**(1/N)
-    return moisture_particle
-
-
-def compute_air_equilibrium(moisture_particle_vector, alpha, N):
-    equilibrium_air = (1 - np.exp(-alpha * moisture_particle_vector ** N))
-    return equilibrium_air
-
-
-def equilibrium_curve_fit(X, alpha, N):
-    return 1 - np.exp(-alpha * X**N)
+# def compute_moisture_particle_from_RH(relative_humidity, alpha, N):
+#     moisture_particle = (-np.log(1-relative_humidity)/alpha)**(1/N)
+#     return moisture_particle
+#
+#
+# def compute_air_equilibrium(moisture_particle_vector, alpha, N):
+#     equilibrium_air = (1 - np.exp(-alpha * moisture_particle_vector ** N))
+#     return equilibrium_air
+#
+#
+# def equilibrium_curve_fit(X, alpha, N):
+#     return 1 - np.exp(-alpha * X**N)
 
 
 ###################### COMPUTE a AND N AMORHPOUS LACTOSE FROM GAB ######################################################
-relative_humidities     = np.linspace(0, 0.85, 10000)
-moistures_am            = compute_GAB_equilibrium_moisture_am(relative_humidities)
-moistures_am_der        = compute_derivative_m_GAB(relative_humidities, cryst=False)
+# relative_humidities     = np.linspace(0, 0.85, 10000)
+# moistures_am            = compute_GAB_equilibrium_moisture_am(relative_humidities)
+# moistures_am_der        = compute_derivative_m_GAB(relative_humidities, cryst=False)
+#
+# moistures_cryst         = compute_GAB_equilibrium_moisture_cryst(relative_humidities)
+# eq_air_cryst            = compute_air_equilibrium(moistures_cryst, alpha_parameter_cryst, N_cryst)
+#
+# start_params            = (3, 0.7) # start with values near those we expect
+# params, cv              = scipy.optimize.curve_fit(equilibrium_curve_fit, moistures_am, relative_humidities, start_params)
+# alpha_parameter_am, N_am = params
 
-moistures_cryst         = compute_GAB_equilibrium_moisture_cryst(relative_humidities)
-eq_air_cryst            = compute_air_equilibrium(moistures_cryst, alpha_parameter_cryst, N_cryst)
 
-start_params            = (3, 0.7) # start with values near those we expect
-params, cv              = scipy.optimize.curve_fit(equilibrium_curve_fit, moistures_am, relative_humidities, start_params)
-alpha_parameter_am, N_am = params
 
+# def compute_moisture_change_am(water_activity, porosity, diffusion, laplacian):
+#     derivative = compute_derivative_m_GAB(water_activity, cryst=False)
+#
+#     top = diffusion * laplacian
+#     bottom = (1 - porosity) * derivative + porosity
+#     moisture_change = top/bottom
+#     return moisture_change
+#
 
 # def compute_temp_tables(Q, H, M):
 #
