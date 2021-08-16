@@ -2,31 +2,54 @@ from functions import *
 
 ############################################ FITTING ###################################################################
 def plot_GAB():
-    eq_air_am = equilibrium_curve_fit(moistures_am, alpha_parameter_am, N_am)
-    fig, axs = plt.subplots(2, 2, figsize=(15, 15))
+    water_activities = np.linspace(0, 1, 1000)
+    m_cryst = compute_GAB_equilibrium_moisture_cryst(water_activities, H_H = False)
+    m_cryst_cheat = compute_GAB_equilibrium_moisture_cryst(water_activities, H_H = True)
+
+    m_am = compute_GAB_equilibrium_moisture_am(water_activities)
+    max_index = np.where(m_am >= 1)[0][0]
+    max_90_index = np.where(m_am >= 0.9)[0][0]
+    wa_max = water_activities[max_index]
+    wa_90_max = water_activities[max_90_index]
+    fig, axs = plt.subplots(1, 2, figsize=(23, 7))
+
+    change_index = np.where(m_cryst_cheat + m_cryst > 0.0015)[0][0]
+
+    major_ticks = np.arange(0, 1.1, 0.1)
+    axs[0].set_xticks(major_ticks)
+    axs[1].set_xticks(major_ticks)
+    axs[1].set_yticks(major_ticks)
 
     fig.suptitle('Equilibrium GAB vs fitted curves')
-    axs[0, 0].plot(relative_humidities, moistures_cryst, label='Moisture content')
-    axs[0, 0].plot(eq_air_cryst, moistures_cryst, label='Fitted curve')
-    axs[0, 0].legend()
-    axs[0, 0].grid()
-    axs[0, 0].set_title('Crystalline lactose')
+    axs[0].plot(water_activities, m_cryst, label='With modification', color='navy')
+    axs[0].plot(water_activities, m_cryst_cheat, label='Without modification; H\' = H\'\' = 1', color='darkcyan',
+                linestyle='--')
+    axs[0].vlines(water_activities[change_index], 0, m_cryst[change_index], color='darkgoldenrod', linestyle='--')
+    axs[0].plot([water_activities[change_index]], m_cryst[change_index], 'x', ms=8, color='darkgoldenrod')
 
-    axs[1, 0].plot(relative_humidities, moistures_am, label='Moisture content')
-    axs[1, 0].plot(eq_air_am, moistures_am, label='Fitted curve')
-    axs[1, 0].legend()
-    axs[1, 0].grid()
-    axs[1, 0].set_ylim(0, 0.9)
-    axs[1, 0].set_title('Amorhpous lactose')
+    axs[0].legend()
+    axs[0].set_ylim(0, 0.005)
 
-    axs[1, 1].plot(relative_humidities, moistures_am_der, label='Moisture content')
-    axs[1, 1].legend()
-    axs[1, 1].grid()
-    axs[1, 1].set_ylim(0, 0.9)
-    axs[1, 1].set_title('Amorhpous lactose derivative')
+    axs[0].grid(which='both', alpha=0.6)
+    axs[0].set_title('Crystalline lactose')
 
-    plt.xlabel('RH')
-    plt.ylabel('Moisture, g/g lactose')
+    axs[1].plot(water_activities, m_am, label='Moisture content', color='navy')
+    axs[1].plot([wa_max], [m_am[max_index]], 'x', ms=8, color='darkgoldenrod')
+    axs[1].vlines(wa_max, 0, m_am[max_index], linestyles='--', color='darkgoldenrod')
+    # axs[1].vlines(wa_90_max, 0, 1.1, linestyles='--', color='darkgoldenrod')
+    axs[1].text(0.73, 1.01, f'{wa_max:.2f}', color='navy', size='large')
+    axs[1].legend()
+    axs[1].grid(which='both', alpha=0.6)
+    # axs[1].set_xlim(0, 0.87)
+    axs[1].set_ylim(0, 1.1)
+    axs[1].set_title('Amorhpous lactose')
+
+    # axs[0].set_xlabel(r'$w_a$')
+    axs[0].set_xlabel('Water activity')
+    axs[1].set_xlabel('Water activity')
+
+    axs[0].set_ylabel('Moisture content, g water/g lactose')
+    axs[1].set_ylabel('Moisture content, g water/g lactose')
 
     plt.show()
 
