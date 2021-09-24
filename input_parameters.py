@@ -2,6 +2,7 @@ import numpy as np
 import time
 import scipy.optimize
 from scipy.integrate import odeint
+# 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
 
 import matplotlib
 matplotlib.use('TkAgg')
@@ -13,84 +14,75 @@ r_gas_constant = 8.314                                                          
 h_planck = 6.62607004 * 10 **(-34)                                              # Planck's constant, m2 * kg / s
 k_boltzmann = 1.38064852 * 10 **(-23)                                           # Boltzmann constant, m2 * kg / (s^2 * K)
 kelvin = 273.15                                                                 # Conversion to degrees
+pressure_ambient = 101325                                                       # atmospheric pressure, Pa
 
-# Water
+# Water, liquid
 A = 8.07131                                                                     # Antoine constant for water
 B = 1730.630                                                                    # Antoine constant for water
 C = 233.426                                                                     # Antoine constant for water
-glass_temp_water_1 = 136                                                        # glass transition water, Kelvin
-glass_temp_water_2 = 165                                                        # glass transition water alt 2, Kelvin
-gas_viscosity = 10 ** -5                                                        # mu_G, kg/(m*s)
+# glass_temp_water_1 = 136                                                      # glass transition water, Kelvin
+glass_temp_water_1 = 138.15                                                     # glass transition water, Kelvin
 molar_mass_moisture = 18/1000                                                   # kg/mol for water
-molar_mass_dry_air = 28.97/1000                                                 # kg/mol
 density_water = 1000                                                            # kg/m3
-
-heat_capacity_vapor = 2000                                             # J/(kg*K), C_PV, heat cap water vapor
-heat_capacity_water = 4200                                            # J/(kg*K), C_M, heat cap liquid water
+heat_capacity_water = 4200                                                      # J/(kg*K), C_M, heat cap liquid water
 boiling_temp = kelvin + 100                                                     # for water
-heat_capacity_air = 1000                                                        # C_P_WG, heat cap air
-conductivity_gas = 0.01                                                         # W/(m*K), lambda, conductivity gas
+
+# Water vapor
+molar_mass_dry_air = 28.97/1000                                                 # kg/mol
+gas_viscosity = 10 ** -5                                                        # mu_G, kg/(m*s)
+conductivity_gas = 0.01                                                         # J/(s*m*K), lambda, conductivity gas
+heat_capacity_air = 1000                                                        # J/(kg*K), C_P_WG, heat cap air
+heat_capacity_vapor = 2000                                                      # J/(kg*K), C_PV, heat cap water vapor
 density_gas = 1                                                                 # kg/m^3
-# density_gas = 0.0048                                                            # kg/m^3 for pure water vapor! Here mixed w dry air, which is much heavier
+moisture_diffusivity = 2.42 * 10 ** (-5)                                        # D_G, m^2/s
+heat_of_evaporation_water = 2.5 * 10**(6)                                       # latent heat of evaporation water J/kg
+heat_of_water_binding = heat_of_evaporation_water * 1.3                         # latent heat of evaporation water J/kg
+heat_binding_diffs = heat_of_water_binding - heat_of_evaporation_water          # difference between binding lactose/evap, J/kg. Positive
 
 # Lactose
 glass_temp_lactose = 101 + kelvin                                               # Kelvin
-density_particle = 1500                                                         # kg/m^3 TODO: density and porosity combine
-particle_diameter = 0.000002                                                    # m, from page 46 in thesis
-# heat_of_sorption = (185.55 * 1000 / 342.3) * 1000                               # delta_H, J/kg, enthalpy of sorption, kJ/mol * mol/g * g/kg
-# heat_of_sorption = 542 * 1000                                                   # delta_H, J/kg, enthalpy of sorption, kJ/mol * mol/g * g/kg
-#
-# heat_of_sorption = 12.3                                                         # kcal/mol
-# heat_of_sorption *= 4184                                                        # kcal to J
-# heat_of_sorption /= molar_mass_moisture                                         # J/mol / kg/mol = J/kg
-# h_fg = 2.5 * 10**6                                                              # J/kg, math modelling
-# heat_of_sorption= h_fg * 1000
-# heat_of_sorption= 30 * 1000     # J/kg, thesis NZ crystallization, heat of solution
+glass_temp_lactose = 114 + kelvin                                               # Kelvin TODO: this value works much better! Gives broader and lower integral
+density_particle = 1540                                                         # kg/m^3
+heat_capacity_particle = 1252                                                   # ca 1220 C_ps heat cap particle, J/(kg * K)
+conductivity_particle = 0.1                                                     # W/(m*K), lambda, conductivity p
 
-# POWDER
+# Powder
+particle_diameter = 0.000002                                                    # m, from page 46 in thesis
 density_powder = 218                                                            # kg/m3
-# porosity_powder = 0.5
 porosity_powder = 1 - density_powder/(density_particle)                         # 0.85
 heat_of_crystallization = 43.1 * 1000                                           # delta_H, J/kg, enthalpy of crystallization
-heat_capacity_particle = 417.6 * 1000 / 342.3                                     # C_P,P & C_P,WP, heat cap particle, J/(kg * K)
-conductivity_particle = 0.1                                                     # W/(m*K), lambda, conductivity p
-specific_surface_area = 200                                                     # m2/kg, SSA
+heat_of_crystallization = 32 * 1000                                             # delta_H, J/kg, enthalpy of crystallization
 specific_surface_area = 6 * (1- porosity_powder)/(particle_diameter * density_particle)       # m2/kg, SSA
-heat_of_evaporation_water = 2.5 * 10**(6)                                       # latent heat of evaporation water J/kg
+diffusivity_eff = moisture_diffusivity * porosity_powder * 0.5                  # m2/s
+diffusivity_eff = moisture_diffusivity * porosity_powder * 0.75                 # TODO: new
+conductivity_tot = porosity_powder * conductivity_gas + (1 - porosity_powder) * conductivity_particle
+conductivity_tot = 0.17
+
+# Sample
 weight = 0.00015                                                                # kg, 150 mg
 volume = weight/density_powder                                                  # m3
-diameter_vial = 0.011                                                           # m, measured as 11 mm
-area_vial = np.pi * (diameter_vial/2)**2                                        # m2
-total_height_powder = volume/area_vial                                          # how high is powder filled
+out_diam_TAM_cyl = 0.013                                                        # m, measured as 11 mm
+in_diam_TAM_cyl = 0.011                                                         # m, measured as 11 mm
+wall_thickness_TAM_cyl = (out_diam_TAM_cyl- in_diam_TAM_cyl)/2                  # m, measured as 11 mm
+# radius_vial = out_diam_TAM_cyl / 2
+in_area_TAM_cyl = np.pi * (in_diam_TAM_cyl / 2) ** 2                            # m2
+total_height_powder = volume / in_area_TAM_cyl                                  # how high is powder filled
 
-# Material specific for gas and powder
-moisture_diffusivity = 2.42 * 10 ** -5                                          # D_G, m^2/s
-diffusivity_eff = moisture_diffusivity * porosity_powder * 0.5      #TODO: function of temperature! Eq 16
-N_cryst = 0.9
-alpha_parameter_cryst = 1733
-
-# Variables
 amorphous_material_initial = 0.16                                               # 16 % am left in batch L6.5 before cond, page 82 thesis
-# amorphous_material_initial = 0.0                                               # 16 % am left in batch L6.5 before cond, page 82 thesis
+# amorphous_material_initial = 0.01                                             # 16 % am left in batch L6.5 before cond, page 82 thesis
+height_TAM_cyl = 0.035
+height_air_TAM_cyl = 0.019
+height_air_TAM_cyl = height_air_TAM_cyl - total_height_powder
+volume_ampoule = in_area_TAM_cyl * height_air_TAM_cyl
+fraction_powder = volume/volume_ampoule
+conductivity_glass = 0.8                # W/( m K )
 
-bed_length = 0.032                                                              # m
-bed_length = 0.024                                                              # m
-bed_length = 0.07                                                               # m
-column_diameter = 0.024                                                         # m
-cross_sectional_area = np.pi * (column_diameter/2)**2                           # m^2
-volumetric_flow_rate_liters_per_minute = 0.5                                    # l/min
-volumetric_flow_rate_liters_per_minute = 0.06                                   # l/min
-volumetric_flow_rate_liters_per_minute = 1                                      # l/min
-rotation_time_interval = 19 * 60                                                # s after which to rotate
-rotation_time_interval = 58 * 60                                                # s after which to rotate
-
-temp_initial = kelvin + 35                                                      # K, room temperature 24 degrees
+in_diam_ampoule = 0.003                                                         # m, measured 3 mm
+area_ampoule = np.pi * (in_diam_ampoule / 2) ** 2                               # m2
 temp_initial_celsius = 25
 temp_initial = kelvin + temp_initial_celsius                                    # K, room temperature 24 degrees
-temp_walls = temp_initial                                                       # At cylinder walls, cooling
 relative_humidity_bed_initial = 0.2                                             # humidity in bed, starting condition
 relative_humidity_gas_inlet = 0.58                                              # humidity of flowing gas
-# water_activity_max =
-relative_humidity_gas_end = 0.2                                                 # humidity at end of cylinder
-pressure_ambient = 101325                                                       # atmospheric pressure, Pa
+relative_humidity_gas_inlet = 0.5757                                            # humidity of flowing gas
 
+contact_area_powder = in_area_TAM_cyl + np.pi * in_diam_TAM_cyl * total_height_powder
