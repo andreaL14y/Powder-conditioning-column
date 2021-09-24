@@ -1,5 +1,5 @@
 from v_ode_functions_2 import*
-from glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1
+from old_files.glass_transition_curve import compute_glass_temp_mix, glass_temp_lactose, glass_temp_water_1
 counter = 0
 from old_files.art_functions import compute_crystal_growth_rate
 from plot_functions import compute_air_equilibrium
