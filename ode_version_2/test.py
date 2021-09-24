@@ -2,27 +2,37 @@ from initial_conditions import *
 import time
 import numpy as np
 kelvin = 273.15
-# n = 50
+
+a = np.array([1, 2, 3])
+b = np.array([0, 1, 2])
+print(a*b)
+
+def f(x):
+    A = np.array([1, 2, 3])
+    # A + x
+    diff = np.mean(A + x, axis=0)
+    return diff
 
 
-T = np.linspace(18, 40, 50)
-wa = np.linspace(relative_humidity_bed_initial, relative_humidity_gas_inlet, 50)
 
-
-H1 = compute_H_from_aw_temp(wa, temp_initial_celsius)
-densities1 = compute_density_air(temp_initial_celsius, H1)
-
-H2 = compute_H_from_aw_temp(wa, temp_initial_celsius+10)
-densities2 = compute_density_air(temp_initial_celsius+10, H2)
-
-# plt.plot(H1, densities2, label=f'{temp_initial_celsius}')
-# plt.plot(H2, densities2, label=f'{temp_initial_celsius+10}')
-plt.plot(wa, H1, label=f'{temp_initial_celsius}')
-plt.plot(wa, H2, label=f'{temp_initial_celsius+10}')
-plt.ylabel('H')
-plt.xlabel('wa')
-plt.legend()
-plt.show()
+# T = np.linspace(18, 40, 50)
+# wa = np.linspace(relative_humidity_bed_initial, relative_humidity_gas_inlet, 50)
+#
+#
+# H1 = compute_H_from_aw_temp(wa, temp_initial_celsius)
+# densities1 = compute_density_air(temp_initial_celsius, H1)
+#
+# H2 = compute_H_from_aw_temp(wa, temp_initial_celsius+10)
+# densities2 = compute_density_air(temp_initial_celsius+10, H2)
+#
+# # plt.plot(H1, densities2, label=f'{temp_initial_celsius}')
+# # plt.plot(H2, densities2, label=f'{temp_initial_celsius+10}')
+# plt.plot(wa, H1, label=f'{temp_initial_celsius}')
+# plt.plot(wa, H2, label=f'{temp_initial_celsius+10}')
+# plt.ylabel('H')
+# plt.xlabel('wa')
+# plt.legend()
+# plt.show()
 
 # def compute_H_and_M_iteratively(water_activity, total_water, temp_celsius, amount_am):
 #     pressure_water = compute_pressure_water(temp_celsius)
