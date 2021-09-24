@@ -1,5 +1,5 @@
 from input_parameters import*
-from glass_transition_curve import compute_glass_temp_mix, glass_temp_water_1, glass_temp_lactose
+from old_files.glass_transition_curve import compute_glass_temp_mix, glass_temp_water_1, glass_temp_lactose
 
 # Constants for lactose
 m1 = 21000
